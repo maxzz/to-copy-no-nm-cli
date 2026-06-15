@@ -14,27 +14,29 @@ import (
 )
 
 func main() {
+	gadget := ascii.InspectorGadget()
+
 	if len(os.Args) != 3 {
-		console.PrintError(fmt.Errorf("usage: copy-no-nm <source> <destination>"))
+		console.PrintError(fmt.Errorf("usage: copy-no-nm <source> <destination>"), gadget)
 	}
 
 	src, err := filepath.Abs(os.Args[1])
 	if err != nil {
-		console.PrintError(fmt.Errorf("invalid source path: %w", err))
+		console.PrintError(fmt.Errorf("invalid source path: %w", err), gadget)
 	}
 
 	dst, err := filepath.Abs(os.Args[2])
 	if err != nil {
-		console.PrintError(fmt.Errorf("invalid destination path: %w", err))
+		console.PrintError(fmt.Errorf("invalid destination path: %w", err), gadget)
 	}
 
 	if err := recycle.ClearDirectory(dst); err != nil {
-		console.PrintError(fmt.Errorf("clear destination: %w", err))
+		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
 	}
 
 	if err := copydir.Copy(src, dst); err != nil {
-		console.PrintError(fmt.Errorf("copy failed: %w", err))
+		console.PrintError(fmt.Errorf("copy failed: %w", err), gadget)
 	}
 
-	console.PrintSuccess(ascii.InspectorGadget())
+	console.PrintSuccess(gadget)
 }

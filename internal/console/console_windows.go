@@ -50,9 +50,12 @@ const (
 	colorReset = "\x1b[0m"
 )
 
-// PrintError writes err in red and waits for a key press before exiting.
-func PrintError(err error) {
-	fmt.Fprintf(os.Stderr, "%sError: %v%s\n", colorRed, err, colorReset)
+// PrintError writes art and err in red, then waits for a key press before exiting.
+func PrintError(err error, art string) {
+	fmt.Print(colorRed)
+	fmt.Print(art)
+	fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	fmt.Print(colorReset)
 	fmt.Print("Press any key to close...")
 	waitForKey()
 	os.Exit(1)

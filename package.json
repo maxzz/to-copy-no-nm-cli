@@ -1,5 +1,5 @@
 {
-    "name": "copy-no-nm-cli",
+    "name": "copy-no-nm",
     "version": "0.26.1",
     "description": "Copy from one folder to another without the nested node_modules folder",
     "author": "Max Zakharzhevskyi",
