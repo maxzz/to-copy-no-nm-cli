@@ -50,9 +50,15 @@ const (
 	colorRed    = "\x1b[31m"
 	colorGreen  = "\x1b[32m"
 	colorYellow = "\x1b[33m"
+	colorGray   = "\x1b[90m"
 	colorDim    = "\x1b[2m\x1b[90m"
 	colorReset  = "\x1b[0m"
 )
+
+// PrintVersion writes the application version at startup.
+func PrintVersion(name, version string) {
+	fmt.Printf("%s%s v%s%s\n", colorGray, name, version, colorReset)
+}
 
 // PrintError writes art and err in red, then waits for a key press before exiting.
 func PrintError(err error, art string) {

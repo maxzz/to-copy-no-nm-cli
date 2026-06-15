@@ -13,14 +13,16 @@ import (
 	"copy-no-nm/internal/1-recycle"
 )
 
+var version = "dev"
+
 func main() {
-	removeNodeModules := flag.Bool(
-		"remove-node-modules",
-		false,
-		"also delete node_modules folders (including nested) in the destination",
-	)
+	var removeNodeModules bool
+	flag.BoolVar(&removeNodeModules, "remove-node-modules", false, "also delete node_modules folders (including nested) in the destination")
+	flag.BoolVar(&removeNodeModules, "r", false, "shorthand for --remove-node-modules")
 	flag.Usage = printUsage
 	flag.Parse()
+
+	console.PrintVersion("copy-no-nm", version)
 
 	gadget := ascii.InspectorGadget()
 
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
-		RemoveNodeModules: *removeNodeModules,
+		RemoveNodeModules: removeNodeModules,
 	}); err != nil {
 		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
 	}
@@ -56,7 +58,7 @@ func printUsageMessage(message string) {
 		Syntax:  "copy-no-nm [options] <source> <destination>",
 		Options: []console.UsageOption{
 			{
-				Flag:        "--remove-node-modules",
+				Flag:        "-r, --remove-node-modules",
 				Description: "Also delete node_modules folders (including nested) in the destination before copying",
 			},
 		},

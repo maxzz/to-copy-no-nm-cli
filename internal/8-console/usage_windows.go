@@ -21,12 +21,12 @@ type UsageHelp struct {
 	Options []UsageOption
 }
 
-// PrintUsage shows a friendly yellow message, dim gray syntax and options, then waits for a key.
+// PrintUsage shows a friendly yellow message, gray syntax, dim gray options, then waits for a key.
 func PrintUsage(help UsageHelp) {
 	fmt.Printf("%s%s%s\n\n", colorYellow, help.Message, colorReset)
 
-	fmt.Printf("%sUsage:%s\n", colorDim, colorReset)
-	fmt.Printf("  %s%s%s\n\n", colorDim, help.Syntax, colorReset)
+	fmt.Printf("%sUsage:%s\n", colorGray, colorReset)
+	fmt.Printf("  %s%s%s\n\n", colorGray, help.Syntax, colorReset)
 
 	if len(help.Options) > 0 {
 		fmt.Printf("%sOptions:%s\n", colorDim, colorReset)
