@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	ascii "copy-no-nm/internal/8-result-ascii"
-	"copy-no-nm/internal/console"
-	"copy-no-nm/internal/copydir"
-	"copy-no-nm/internal/recycle"
+	"copy-no-nm/internal/8-console"
+	"copy-no-nm/internal/2-copydir"
+	"copy-no-nm/internal/1-recycle"
 )
 
 func main() {
