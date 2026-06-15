@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"copy-no-nm/internal/ascii"
+	"copy-no-nm/internal/8-result-ascii"
 	"copy-no-nm/internal/console"
 	"copy-no-nm/internal/copydir"
 	"copy-no-nm/internal/recycle"

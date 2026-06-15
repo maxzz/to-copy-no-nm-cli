@@ -44,7 +44,7 @@ The CLI utility is set up and builds successfully. Here is what was created and 
 | `internal/copydir/` | Recursive copy, skips `node_modules`, preserves timestamps & attributes |
 | `internal/recycle/` | Sends destination contents to the Windows Recycle Bin via `SHFileOperationW` |
 | `internal/console/` | Red errors + “press any key”, green success output |
-| `internal/ascii/gadget.go` | Inspector Gadget art (~28 lines) |
+| `internal/8-result-ascii/gadget.go` | Inspector Gadget art (~28 lines) |
 | `bin/copy-no-nm.js` | npm bin shim that runs the Go executable |
 | `package.json` | pnpm scripts for build & publish |
 | `README.md`, `.gitignore` | Documentation and ignore rules |
