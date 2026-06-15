@@ -23,8 +23,7 @@
         "node": ">=18"
     },
     "scripts": {
-        "build": "go build -ldflags=\"-s -w\" -o dist/copy-no-nm.exe ./cmd/copy-no-nm",
-        "build:all": "node scripts/build-all.mjs",
+        "build": "node scripts/build.mjs",
         "prepublishOnly": "pnpm run build",
         "publish:npm": "npm publish --access public",
         "test": "go test ./..."

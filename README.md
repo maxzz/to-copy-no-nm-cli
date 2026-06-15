@@ -39,7 +39,7 @@ Install dependencies (no runtime npm packages; pnpm is used for scripts only):
 pnpm install
 ```
 
-Build the Windows executable:
+Build the Windows executable (generates `assets/icon.ico` from `assets/icon-source.png`, embeds it via `goversioninfo`, then compiles):
 
 ```bash
 pnpm run build
@@ -62,8 +62,7 @@ copy-no-nm <source> <destination>
 
 | Script | Description |
 |--------|-------------|
-| `pnpm run build` | Build `dist/copy-no-nm.exe` |
-| `pnpm run build:all` | Build Windows amd64 and arm64 binaries into `dist/` |
+| `pnpm run build` | Generate icon, embed Windows resources, build `dist/copy-no-nm.exe` |
 | `pnpm run prepublishOnly` | Build before publish (runs automatically on `npm publish`) |
 | `pnpm run publish:npm` | Publish to npm (`--access public`) |
 
@@ -76,7 +75,9 @@ pnpm run build
 pnpm run publish:npm
 ```
 
-For cross-platform npm installs, consider splitting platform-specific binaries into separate packages listed under `optionalDependencies` (see npm publishing notes in the project discussion).
+For cross-platform npm installs, consider splitting platform-specific binaries into separate packages listed under `optionalDependencies`.
+
+Replace the temporary icon by editing `assets/icon-source.png`, then run `pnpm run build` again.
 
 ## License
 

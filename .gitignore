@@ -6,3 +6,5 @@ pnpm-debug.log*
 *.out
 go.work
 go.work.sum
+cmd/copy-no-nm/resource.syso
+assets/icon.ico
