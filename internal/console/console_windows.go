@@ -1,0 +1,72 @@
+//go:build windows
+
+package console
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"time"
+	"unsafe"
+
+	"golang.org/x/sys/windows"
+)
+
+const (
+	enableVirtualTerminalProcessing = 0x0004
+)
+
+var (
+	kernel32         = windows.NewLazySystemDLL("kernel32.dll")
+	procGetStdHandle = kernel32.NewProc("GetStdHandle")
+	procGetConsoleMode = kernel32.NewProc("GetConsoleMode")
+	procSetConsoleMode = kernel32.NewProc("SetConsoleMode")
+)
+
+const stdOutputHandle = ^uintptr(10) // -11 as uintptr
+
+func init() {
+	enableColors()
+}
+
+func enableColors() {
+	handle, _, _ := procGetStdHandle.Call(stdOutputHandle)
+	if handle == 0 {
+		return
+	}
+
+	var mode uint32
+	r1, _, _ := procGetConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode)))
+	if r1 == 0 {
+		return
+	}
+
+	procSetConsoleMode.Call(handle, uintptr(mode|enableVirtualTerminalProcessing))
+}
+
+const (
+	colorRed   = "\x1b[31m"
+	colorGreen = "\x1b[32m"
+	colorReset = "\x1b[0m"
+)
+
+// PrintError writes err in red and waits for a key press before exiting.
+func PrintError(err error) {
+	fmt.Fprintf(os.Stderr, "%sError: %v%s\n", colorRed, err, colorReset)
+	fmt.Print("Press any key to close...")
+	waitForKey()
+	os.Exit(1)
+}
+
+func PrintSuccess(art string) {
+	fmt.Print(colorGreen)
+	fmt.Print(art)
+	fmt.Print(colorReset)
+	time.Sleep(1500 * time.Millisecond)
+	os.Exit(0)
+}
+
+func waitForKey() {
+	reader := bufio.NewReader(os.Stdin)
+	_, _ = reader.ReadByte()
+}

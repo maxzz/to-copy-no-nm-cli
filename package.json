@@ -1,0 +1,32 @@
+{
+    "name": "copy-no-nm",
+    "version": "0.26.1",
+    "description": "Copy from one folder to another without the nested node_modules folder",
+    "author": "Max Zakharzhevskyi",
+    "license": "MIT",
+    "keywords": [
+        "copy",
+        "node_modules",
+        "cli",
+        "windows",
+        "recycle-bin"
+    ],
+    "type": "module",
+    "bin": {
+        "copy-no-nm": "./bin/copy-no-nm.js"
+    },
+    "files": [
+        "bin",
+        "dist"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
+    "scripts": {
+        "build": "go build -ldflags=\"-s -w\" -o dist/copy-no-nm.exe ./cmd/copy-no-nm",
+        "build:all": "node scripts/build-all.mjs",
+        "prepublishOnly": "pnpm run build",
+        "publish:npm": "npm publish --access public",
+        "test": "go test ./..."
+    }
+}
