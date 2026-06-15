@@ -47,9 +47,11 @@ func enableColors() {
 }
 
 const (
-	colorRed   = "\x1b[31m"
-	colorGreen = "\x1b[32m"
-	colorReset = "\x1b[0m"
+	colorRed    = "\x1b[31m"
+	colorGreen  = "\x1b[32m"
+	colorYellow = "\x1b[33m"
+	colorDim    = "\x1b[2m\x1b[90m"
+	colorReset  = "\x1b[0m"
 )
 
 // PrintError writes art and err in red, then waits for a key press before exiting.

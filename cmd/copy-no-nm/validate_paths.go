@@ -3,14 +3,17 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
+var errUsage = errors.New("usage")
+
 func resolveAndValidatePaths(args []string) (src, dst string, err error) {
 	if len(args) != 2 {
-		return "", "", fmt.Errorf("usage: copy-no-nm [flags] <source> <destination>")
+		return "", "", errUsage
 	}
 
 	src, err = filepath.Abs(args[0])

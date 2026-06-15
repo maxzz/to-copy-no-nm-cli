@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
@@ -18,11 +19,16 @@ func main() {
 		false,
 		"also delete node_modules folders (including nested) in the destination",
 	)
+	flag.Usage = printUsage
 	flag.Parse()
 
 	gadget := ascii.InspectorGadget()
 
 	src, dst, err := resolveAndValidatePaths(flag.Args())
+	if errors.Is(err, errUsage) {
+		printUsageMessage("Please provide a source folder and a destination folder.")
+	}
+
 	if err != nil {
 		console.PrintError(err, gadget)
 	}
@@ -40,6 +46,22 @@ func main() {
 	console.PrintSuccess(gadget)
 }
 
-//TODO: better error message instead of "Error: usage: copy-no-nm <source> <destination>"
+func printUsage() {
+	printUsageMessage("Copy a folder to another location while skipping node_modules during the copy.")
+}
+
+func printUsageMessage(message string) {
+	console.PrintUsage(console.UsageHelp{
+		Message: message,
+		Syntax:  "copy-no-nm [options] <source> <destination>",
+		Options: []console.UsageOption{
+			{
+				Flag:        "--remove-node-modules",
+				Description: "Also delete node_modules folders (including nested) in the destination before copying",
+			},
+		},
+	})
+}
+
 //TODO: better icon
 //TODO: publish to npm
