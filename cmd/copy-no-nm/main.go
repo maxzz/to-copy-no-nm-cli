@@ -5,9 +5,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"copy-no-nm/internal/8-result-ascii"
+	ascii "copy-no-nm/internal/8-result-ascii"
 	"copy-no-nm/internal/console"
 	"copy-no-nm/internal/copydir"
 	"copy-no-nm/internal/recycle"
@@ -16,18 +15,9 @@ import (
 func main() {
 	gadget := ascii.InspectorGadget()
 
-	if len(os.Args) != 3 {
-		console.PrintError(fmt.Errorf("usage: copy-no-nm <source> <destination>"), gadget)
-	}
-
-	src, err := filepath.Abs(os.Args[1])
+	src, dst, err := resolveAndValidatePaths(os.Args)
 	if err != nil {
-		console.PrintError(fmt.Errorf("invalid source path: %w", err), gadget)
-	}
-
-	dst, err := filepath.Abs(os.Args[2])
-	if err != nil {
-		console.PrintError(fmt.Errorf("invalid destination path: %w", err), gadget)
+		console.PrintError(err, gadget)
 	}
 
 	if err := recycle.ClearDirectory(dst); err != nil {
