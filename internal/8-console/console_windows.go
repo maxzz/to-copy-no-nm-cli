@@ -53,11 +53,15 @@ const (
 	colorGray   = "\x1b[90m"
 	colorDim    = "\x1b[2m\x1b[90m"
 	colorReset  = "\x1b[0m"
+
+	ProgramName        = "copy-no-nm"
+	ProgramDescription = "Copy a folder to another location, skipping node_modules."
 )
 
-// PrintVersion writes the application version at startup.
-func PrintVersion(name, version string) {
-	fmt.Printf("%s%s v%s%s\n", colorGray, name, version, colorReset)
+// PrintVersion writes the program name, description, and version at startup.
+func PrintVersion(version string) {
+	fmt.Printf("%s — %s", ProgramName, ProgramDescription)
+	fmt.Printf(" %s(version %s)%s\n\n", colorGray, version, colorReset)
 }
 
 // PrintError writes art and err in red, then waits for a key press before exiting.

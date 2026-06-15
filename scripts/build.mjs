@@ -32,7 +32,7 @@ function bumpPatchVersion(version) {
     return parts.join('.');
 }
 
-function updatePackageVersion() {
+function updateVersion_PackageJson() {
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
     const newVersion = bumpPatchVersion(pkg.version);
     pkg.version = newVersion;
@@ -40,7 +40,7 @@ function updatePackageVersion() {
     return newVersion;
 }
 
-function updateVersionInfo(version) {
+function updateVersion_GoInfo(version) {
     const [major, minor, patch] = version.split('.').map((part) => Number.parseInt(part, 10));
     const versionInfo = JSON.parse(readFileSync(versionInfoPath, 'utf8'));
 
@@ -52,8 +52,8 @@ function updateVersionInfo(version) {
     writeFileSync(versionInfoPath, `${JSON.stringify(versionInfo, null, 4)}\n`, 'utf8');
 }
 
-const version = updatePackageVersion();
-updateVersionInfo(version);
+const version = updateVersion_PackageJson();
+updateVersion_GoInfo(version);
 console.log(`Building copy-no-nm v${version}`);
 
 if (!existsSync(iconPath)) {

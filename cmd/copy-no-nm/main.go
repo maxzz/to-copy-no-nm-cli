@@ -22,7 +22,7 @@ func main() {
 	flag.Usage = printUsage
 	flag.Parse()
 
-	console.PrintVersion("copy-no-nm", version)
+	console.PrintVersion(version)
 
 	gadget := ascii.InspectorGadget()
 

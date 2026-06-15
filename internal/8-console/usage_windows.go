@@ -23,8 +23,6 @@ type UsageHelp struct {
 
 // PrintUsage shows a friendly yellow message, gray syntax, dim gray options, then waits for a key.
 func PrintUsage(help UsageHelp) {
-	fmt.Printf("%s%s%s\n\n", colorYellow, help.Message, colorReset)
-
 	fmt.Printf("%sUsage:%s\n", colorGray, colorReset)
 	fmt.Printf("  %s%s%s\n\n", colorGray, help.Syntax, colorReset)
 
@@ -42,6 +40,8 @@ func PrintUsage(help UsageHelp) {
 		}
 		fmt.Println()
 	}
+
+	fmt.Printf("%s%s%s\n\n", colorYellow, help.Message, colorReset)
 
 	fmt.Print("Press any key to close...")
 	waitForKey()
