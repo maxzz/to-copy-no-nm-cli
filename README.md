@@ -24,12 +24,18 @@ copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
 
 ### Behavior
 
-1. All files and folders inside `<destination>` are moved to the Recycle Bin.
+1. Existing destination contents are cleared to the Recycle Bin using selective rules (`node_modules` folders are kept by default).
 2. `<source>` is copied recursively into `<destination>`.
-3. Any directory named `node_modules` is skipped entirely.
+3. Any directory named `node_modules` is skipped during the copy.
 4. File creation dates, timestamps, and attributes are preserved.
-5. On error: the message is shown in red and the app waits for a key press before closing.
-6. On success: a green Inspector Gadget ASCII image is shown for 1.5 seconds, then the app closes.
+5. On error: Inspector Gadget is shown in red, then the app waits for a key press before closing.
+6. On success: Inspector Gadget is shown in green for 1.5 seconds, then the app closes.
+
+### Clearing the destination
+
+By default, `node_modules` folders in the destination are **not** deleted. Other subfolders are removed as a whole unless they contain a nested `node_modules` folder; in that case the same rules are applied inside that subfolder.
+
+Use `--remove-node-modules` to also send `node_modules` folders (including nested ones) to the Recycle Bin.
 
 ## Development
 

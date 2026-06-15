@@ -60,23 +60,3 @@ func MoveToRecycleBin(path string) error {
 	}
 	return nil
 }
-
-// ClearDirectory moves every entry inside dir to the Recycle Bin.
-// If dir does not exist it is created empty.
-func ClearDirectory(dir string) error {
-	entries, err := osReadDir(dir)
-	if err != nil {
-		if osIsNotExist(err) {
-			return osMkdirAll(dir, 0o755)
-		}
-		return err
-	}
-
-	for _, entry := range entries {
-		target := filepath.Join(dir, entry.Name())
-		if err := MoveToRecycleBin(target); err != nil {
-			return fmt.Errorf("recycle bin: clear %q: %w", target, err)
-		}
-	}
-	return nil
-}

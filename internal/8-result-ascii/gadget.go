@@ -49,7 +49,7 @@ func InspectorGadget() string {
 		"      '-..___|_..=:` `-:=.._|___..-'\n"
 }
 
-/* //https://www.asciiart.eu/art/9933beff4cb9c172
+/* //https://www.asciiart.eu/art/9933beff4cb9c172 // icon: https://icon-sets.iconify.design/?query=copy stash:copy-light
                   _..__
                 .' I   '.
                 |.-"""-.|

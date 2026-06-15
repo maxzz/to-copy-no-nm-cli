@@ -9,16 +9,16 @@ import (
 )
 
 func resolveAndValidatePaths(args []string) (src, dst string, err error) {
-	if len(args) != 3 {
-		return "", "", fmt.Errorf("usage: copy-no-nm <source> <destination>")
+	if len(args) != 2 {
+		return "", "", fmt.Errorf("usage: copy-no-nm [flags] <source> <destination>")
 	}
 
-	src, err = filepath.Abs(args[1])
+	src, err = filepath.Abs(args[0])
 	if err != nil {
 		return "", "", fmt.Errorf("invalid source path: %w", err)
 	}
 
-	dst, err = filepath.Abs(args[2])
+	dst, err = filepath.Abs(args[1])
 	if err != nil {
 		return "", "", fmt.Errorf("invalid destination path: %w", err)
 	}

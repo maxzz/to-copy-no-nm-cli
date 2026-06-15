@@ -3,8 +3,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 
 	ascii "copy-no-nm/internal/8-result-ascii"
 	"copy-no-nm/internal/console"
@@ -13,14 +13,23 @@ import (
 )
 
 func main() {
+	removeNodeModules := flag.Bool(
+		"remove-node-modules",
+		false,
+		"also delete node_modules folders (including nested) in the destination",
+	)
+	flag.Parse()
+
 	gadget := ascii.InspectorGadget()
 
-	src, dst, err := resolveAndValidatePaths(os.Args)
+	src, dst, err := resolveAndValidatePaths(flag.Args())
 	if err != nil {
 		console.PrintError(err, gadget)
 	}
 
-	if err := recycle.ClearDirectory(dst); err != nil {
+	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
+		RemoveNodeModules: *removeNodeModules,
+	}); err != nil {
 		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
 	}
 
