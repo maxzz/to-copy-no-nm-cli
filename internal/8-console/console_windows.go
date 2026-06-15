@@ -17,13 +17,15 @@ const (
 )
 
 var (
-	kernel32         = windows.NewLazySystemDLL("kernel32.dll")
-	procGetStdHandle = kernel32.NewProc("GetStdHandle")
+	kernel32           = windows.NewLazySystemDLL("kernel32.dll")
+	procGetStdHandle   = kernel32.NewProc("GetStdHandle")
 	procGetConsoleMode = kernel32.NewProc("GetConsoleMode")
 	procSetConsoleMode = kernel32.NewProc("SetConsoleMode")
+	procGetch          = windows.NewLazySystemDLL("msvcrt.dll").NewProc("_getch")
 )
 
 const stdOutputHandle = ^uintptr(10) // -11 as uintptr
+const stdInputHandle = ^uintptr(9)   // -10 as uintptr
 
 func init() {
 	enableColors()
@@ -70,6 +72,23 @@ func PrintSuccess(art string) {
 }
 
 func waitForKey() {
+	handle, _, _ := procGetStdHandle.Call(stdInputHandle)
+	if handle == 0 {
+		waitForKeyFallback()
+		return
+	}
+
+	var mode uint32
+	r1, _, _ := procGetConsoleMode.Call(handle, uintptr(unsafe.Pointer(&mode)))
+	if r1 == 0 {
+		waitForKeyFallback()
+		return
+	}
+
+	procGetch.Call()
+}
+
+func waitForKeyFallback() {
 	reader := bufio.NewReader(os.Stdin)
 	_, _ = reader.ReadByte()
 }

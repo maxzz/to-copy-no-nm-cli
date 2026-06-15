@@ -41,6 +41,5 @@ func main() {
 }
 
 //TODO: better error message instead of "Error: usage: copy-no-nm <source> <destination>"
-//TODO: "Press any key to close..." accept only Enter but should be any
 //TODO: better icon
 //TODO: publish to npm

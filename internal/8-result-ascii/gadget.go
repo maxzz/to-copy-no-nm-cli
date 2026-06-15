@@ -46,7 +46,8 @@ func InspectorGadget() string {
 		"         _..._L____J L____J _..._\n" +
 		"       .` \"-. `%   | |    %` .-\" `.\n" +
 		"      /      \\    .: :.     /      \\\n" +
-		"      '-..___|_..=:` `-:=.._|___..-'\n"
+		"      '-..___|_..=:` `-:=.._|___..-'\n" +
+		"\n"
 }
 
 /* //https://www.asciiart.eu/art/9933beff4cb9c172 // icon: https://icon-sets.iconify.design/?query=copy stash:copy-light
