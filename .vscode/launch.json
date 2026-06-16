@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug copy-no-nm (consts)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/copy-no-nm",
+            "args": [
+                "C:/y/w/2-web/0-dp/utils/pmac",
+                "C:/Users/maxzz/Desktop/pmac"
+            ]
+        },
+        {
+            "name": "Debug copy-no-nm",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/copy-no-nm",
+            "args": [
+                "${input:sourceDir}",
+                "${input:destinationDir}"
+            ]
+        },
+        {
+            "name": "Debug copy-no-nm (-r)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/copy-no-nm",
+            "args": [
+                "-r",
+                "${input:sourceDir}",
+                "${input:destinationDir}"
+            ]
+        },
+        {
+            "name": "Debug copy-no-nm (usage)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/copy-no-nm",
+            "args": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "sourceDir",
+            "type": "promptString",
+            "description": "Source folder path",
+            "default": "C:\\path\\to\\source"
+        },
+        {
+            "id": "destinationDir",
+            "type": "promptString",
+            "description": "Destination folder path",
+            "default": "C:\\path\\to\\destination"
+        }
+    ]
+}

@@ -19,7 +19,7 @@ const (
 	fileShareDelete         = 0x00000004
 	openExisting            = 3
 	genericRead             = 0x80000000
-	genericWrite            = 0x40000000
+	fileWriteAttributes     = 0x00000100
 )
 
 var (
@@ -43,7 +43,7 @@ func copyFileMetadata(src, dst string) error {
 	}
 	defer windows.CloseHandle(srcHandle)
 
-	dstHandle, err := openPath(dst, genericWrite, fileShareRead|fileShareWrite|fileShareDelete)
+	dstHandle, err := openPath(dst, fileWriteAttributes, fileShareRead|fileShareWrite|fileShareDelete)
 	if err != nil {
 		return fmt.Errorf("open destination metadata: %w", err)
 	}
