@@ -13,6 +13,7 @@ import (
 
 	recycle "copy-no-nm/internal/1-recycle"
 	copydir "copy-no-nm/internal/2-copydir"
+	"copy-no-nm/internal/9-progress"
 )
 
 const (
@@ -32,6 +33,8 @@ type SyncOptions struct {
 	// CopyGit includes the root .git folder in sync.
 	// Default: false (skipped).
 	CopyGit bool
+	// Reporter receives scan and sync progress. Default: none.
+	Reporter progress.Reporter
 }
 
 // Sync updates the destination to match the source by copying new or changed files
@@ -61,12 +64,17 @@ func Sync(src, dst string, opts SyncOptions) error {
 		return fmt.Errorf("create destination: %w", err)
 	}
 
-	srcFiles, srcDirs, err := collectTree(src, opts)
+	reporter := opts.Reporter
+	if reporter == nil {
+		reporter = progress.NopReporter{}
+	}
+
+	srcFiles, srcDirs, err := collectTree(src, opts, reporter)
 	if err != nil {
 		return fmt.Errorf("scan source: %w", err)
 	}
 
-	dstFiles, _, err := collectTree(dst, opts)
+	dstFiles, _, err := collectTree(dst, opts, progress.NopReporter{})
 	if err != nil {
 		return fmt.Errorf("scan destination: %w", err)
 	}
@@ -78,6 +86,11 @@ func Sync(src, dst string, opts SyncOptions) error {
 		if ok && signaturesEqual(srcSig, dstSig) {
 			continue
 		}
+		marker := progress.MarkerAdd
+		if ok {
+			marker = progress.MarkerModify
+		}
+		reporter.RecordAction(marker, rel)
 		if err := copydir.CopyRel(src, dst, rel, copyOpts); err != nil {
 			return fmt.Errorf("sync copy %q: %w", rel, err)
 		}
@@ -87,6 +100,7 @@ func Sync(src, dst string, opts SyncOptions) error {
 		if _, ok := srcFiles[rel]; ok {
 			continue
 		}
+		reporter.RecordAction(progress.MarkerDelete, rel)
 		target := filepath.Join(dst, rel)
 		if err := recycle.MoveToRecycleBin(target); err != nil {
 			return fmt.Errorf("sync remove %q: %w", rel, err)
@@ -100,9 +114,10 @@ func Sync(src, dst string, opts SyncOptions) error {
 	return nil
 }
 
-func collectTree(root string, opts SyncOptions) (map[string]fileSignature, map[string]struct{}, error) {
+func collectTree(root string, opts SyncOptions, reporter progress.Reporter) (map[string]fileSignature, map[string]struct{}, error) {
 	files := make(map[string]fileSignature)
 	dirs := make(map[string]struct{})
+	reporter.BeginScan(filepath.Base(root))
 
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -145,6 +160,7 @@ func collectTree(root string, opts SyncOptions) (map[string]fileSignature, map[s
 		}
 
 		files[rel] = sig
+		reporter.RecordFile(rel)
 		return nil
 	})
 	if err != nil {

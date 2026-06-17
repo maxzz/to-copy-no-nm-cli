@@ -12,7 +12,6 @@ import (
 	fullcopy "copy-no-nm/internal/5-fullcopy"
 	progress "copy-no-nm/internal/9-progress"
 	console "copy-no-nm/internal/8-console"
-	ascii "copy-no-nm/internal/8-result-ascii"
 )
 
 var version = "dev"
@@ -34,8 +33,9 @@ func main() {
 		console.PrintError(err)
 	}
 
+	srcLabel := filepath.Base(src)
+
 	if parsed.options.check {
-		srcLabel := filepath.Base(src)
 		display := progress.NewFolderDisplay()
 		display.SetSourceRootLabel(srcLabel)
 		result, err := checkdir.Compare(src, dst, display)
@@ -46,21 +46,27 @@ func main() {
 		os.Exit(0)
 	}
 
+	display := progress.NewFolderDisplay()
+	display.SetSourceRootLabel(srcLabel)
+
 	if parsed.options.fullCopy {
 		if err := fullcopy.Run(src, dst, fullcopy.Options{
-			CopyGit: parsed.options.copyGit,
+			CopyGit:  parsed.options.copyGit,
+			Reporter: display,
 		}); err != nil {
 			console.PrintError(fmt.Errorf("full copy failed: %w", err))
 		}
 	} else {
 		if err := syncdir.Sync(src, dst, syncdir.SyncOptions{
-			CopyGit: parsed.options.copyGit,
+			CopyGit:  parsed.options.copyGit,
+			Reporter: display,
 		}); err != nil {
 			console.PrintError(fmt.Errorf("sync failed: %w", err))
 		}
 	}
 
-	console.PrintSuccess(ascii.BuildOK())
+	display.Finish(nil, srcLabel)
+	os.Exit(0)
 }
 
 func printUsage() {

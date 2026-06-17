@@ -40,6 +40,7 @@ type FolderDisplay struct {
 
 	dirCounts  map[string]int
 	totalFiles int
+	changes    []ChangeEntry
 }
 
 // NewFolderDisplay writes progress lines to stdout.
@@ -81,12 +82,28 @@ func (d *FolderDisplay) RecordFile(relPath string) {
 	}
 }
 
+func (d *FolderDisplay) RecordAction(marker rune, relPath string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.changes = append(d.changes, ChangeEntry{Marker: marker, RelPath: relPath})
+	d.animFolder = AnimationLabel(relPath)
+	d.animCount = len(d.changes)
+	if d.animStop == nil {
+		d.startAnimationLocked()
+	}
+}
+
 // Finish prints the tree report, totals, a legend, and waits for any key.
+// When changes is nil, actions recorded via RecordAction are used.
 func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 	d.mu.Lock()
 	d.stopAnimationLocked()
 	totalFiles := d.totalFiles
 	dirCounts := copyDirCounts(d.dirCounts)
+	if changes == nil {
+		changes = cloneChanges(d.changes)
+	}
 	d.mu.Unlock()
 
 	fmt.Fprint(d.out, "\n")

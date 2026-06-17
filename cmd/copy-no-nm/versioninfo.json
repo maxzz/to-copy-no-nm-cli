@@ -3,13 +3,13 @@
         "FileVersion": {
             "Major": 0,
             "Minor": 26,
-            "Patch": 20,
+            "Patch": 21,
             "Build": 0
         },
         "ProductVersion": {
             "Major": 0,
             "Minor": 26,
-            "Patch": 20,
+            "Patch": 21,
             "Build": 0
         },
         "FileFlagsMask": "3f",
@@ -22,12 +22,12 @@
         "Comments": "Temporary generated icon",
         "CompanyName": "Max Zakharzhevskyi",
         "FileDescription": "Copy from one folder to another without node_modules",
-        "FileVersion": "0.26.20",
+        "FileVersion": "0.26.21",
         "InternalName": "copy-no-nm",
         "LegalCopyright": "Copyright Max Zakharzhevskyi. Licensed under MIT.",
         "OriginalFilename": "copy-no-nm.exe",
         "ProductName": "copy-no-nm",
-        "ProductVersion": "0.26.20"
+        "ProductVersion": "0.26.21"
     },
     "VarFileInfo": {
         "Translation": {

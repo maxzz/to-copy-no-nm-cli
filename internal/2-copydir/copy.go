@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"copy-no-nm/internal/9-progress"
 )
 
 const skipDirName = "node_modules"
@@ -16,6 +18,8 @@ type CopyOptions struct {
 	// CopyGit copies the .git folder at the root of the source directory.
 	// Default: false (skipped).
 	CopyGit bool
+	// Reporter receives scan and copy progress. Default: none.
+	Reporter progress.Reporter
 }
 
 // Copy copies src into dst, skipping node_modules directories and preserving file metadata.
@@ -42,6 +46,12 @@ func Copy(src, dst string, opts CopyOptions) error {
 	if err := os.MkdirAll(dst, srcInfo.Mode().Perm()); err != nil {
 		return fmt.Errorf("create destination: %w", err)
 	}
+
+	reporter := opts.Reporter
+	if reporter == nil {
+		reporter = progress.NopReporter{}
+	}
+	reporter.BeginScan(filepath.Base(src))
 
 	return filepath.WalkDir(src, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -82,7 +92,12 @@ func Copy(src, dst string, opts CopyOptions) error {
 			if err := os.Symlink(link, target); err != nil {
 				return fmt.Errorf("create symlink %q: %w", target, err)
 			}
-			return copyFileMetadata(path, target)
+			reporter.RecordFile(rel)
+			if err := copyFileMetadata(path, target); err != nil {
+				return err
+			}
+			reporter.RecordAction(progress.MarkerAdd, rel)
+			return nil
 		}
 
 		if info.IsDir() {
@@ -92,9 +107,12 @@ func Copy(src, dst string, opts CopyOptions) error {
 			return copyFileMetadata(path, target)
 		}
 
+		reporter.RecordFile(rel)
+
 		if err := copyPlatformFile(path, target); err != nil {
 			return fmt.Errorf("copy file %q: %w", path, err)
 		}
+		reporter.RecordAction(progress.MarkerAdd, rel)
 		return nil
 	})
 }

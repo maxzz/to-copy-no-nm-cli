@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"copy-no-nm/internal/9-progress"
 )
 
 func TestSyncCopiesNewAndChangedFiles(t *testing.T) {
@@ -86,11 +88,11 @@ func TestSyncPreservesNodeModules(t *testing.T) {
 }
 
 func compareFileCount(src, dst string) (int, error) {
-	srcFiles, _, err := collectTree(src, SyncOptions{})
+	srcFiles, _, err := collectTree(src, SyncOptions{}, progress.NopReporter{})
 	if err != nil {
 		return 0, err
 	}
-	dstFiles, _, err := collectTree(dst, SyncOptions{})
+	dstFiles, _, err := collectTree(dst, SyncOptions{}, progress.NopReporter{})
 	if err != nil {
 		return 0, err
 	}
