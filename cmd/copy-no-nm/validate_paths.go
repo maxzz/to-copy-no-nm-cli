@@ -34,11 +34,30 @@ func resolveAndValidatePaths(args []string) (src, dst string, err error) {
 		return "", "", err
 	}
 
-	if err := requireDirectory("destination", dst, true); err != nil {
+	if err := requireOrCreateDirectory(dst); err != nil {
 		return "", "", err
 	}
 
 	return src, dst, nil
+}
+
+func requireOrCreateDirectory(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(path, 0o755); err != nil {
+				return fmt.Errorf("create destination: %w", err)
+			}
+			return nil
+		}
+		return fmt.Errorf("destination: %w", err)
+	}
+
+	if !info.IsDir() {
+		return fmt.Errorf("destination is not a directory: %s", path)
+	}
+
+	return nil
 }
 
 func requireDirectory(label, path string, mustExist bool) error {

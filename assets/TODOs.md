@@ -16,6 +16,6 @@ TODO: show progress of deleting and coping files (like clean up # files; copied:
 
 TODO: no it was something else like shell code 120 (when failed to remove): if folder is lock by another application (like far) the message should be more freindly
 
-TODO: if dest file name is provided but does not exist then dest folder should be created
+TODO: If dest folder name is provided as param but does not exist then dest folder should be created
 
-TODO: in README.md add create shortcut with `C:\y\w\2-web\0-dp\utils\to-copy-no-nm-cli\dist\copy-no-nm.exe "C:\y\w\2-web\0-dp\utils\pmac" "C:\Users\maxzz\Desktop\pmac"`
+DONE: in README.md add create shortcut with `C:\y\w\2-web\0-dp\utils\to-copy-no-nm-cli\dist\copy-no-nm.exe "C:\y\w\2-web\0-dp\utils\pmac" "C:\Users\maxzz\Desktop\pmac"`
