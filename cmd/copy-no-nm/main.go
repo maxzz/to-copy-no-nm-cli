@@ -31,21 +31,19 @@ func main() {
 
 	console.PrintVersion(version)
 
-	gadget := ascii.InspectorGadget()
-
 	src, dst, err := resolveAndValidatePaths(flag.Args(), check, swapPaths)
 	if errors.Is(err, errUsage) {
 		printUsageMessage("Please provide a source folder and a destination folder.")
 	}
 
 	if err != nil {
-		console.PrintError(err, gadget)
+		console.PrintError(err)
 	}
 
 	if check {
 		fileCount, err := checkdir.Compare(src, dst)
 		if err != nil {
-			console.PrintError(fmt.Errorf("check failed: %w", err), gadget)
+			console.PrintError(fmt.Errorf("check failed: %w", err))
 		}
 		console.PrintCheckSuccess(fileCount)
 	}
@@ -53,13 +51,13 @@ func main() {
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
 		CopyGit: copyGit,
 	}); err != nil {
-		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
+		console.PrintError(fmt.Errorf("clear destination: %w", err))
 	}
 
 	if err := copydir.Copy(src, dst, copydir.CopyOptions{
 		CopyGit: copyGit,
 	}); err != nil {
-		console.PrintError(fmt.Errorf("copy failed: %w", err), gadget)
+		console.PrintError(fmt.Errorf("copy failed: %w", err))
 	}
 
 	console.PrintSuccess(ascii.BuildOK())

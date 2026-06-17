@@ -43,8 +43,8 @@
             "program": "${workspaceFolder}/cmd/copy-no-nm",
             "args": [
                 "-c",
-                "${input:sourceDir}",
-                "${input:destinationDir}"
+                "C:/y/w/2-web/0-dp/utils/pmac",
+                "C:/Users/maxzz/Desktop/pmac"
             ]
         },
         {

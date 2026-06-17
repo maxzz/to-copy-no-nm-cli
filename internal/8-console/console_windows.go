@@ -9,6 +9,8 @@ import (
 	"time"
 	"unsafe"
 
+	ascii "copy-no-nm/internal/8-result-ascii"
+
 	"golang.org/x/sys/windows"
 )
 
@@ -64,10 +66,10 @@ func PrintVersion(version string) {
 	fmt.Printf(" %s(version %s)%s\n\n", colorGray, version, colorReset)
 }
 
-// PrintError writes art and err in red, then waits for a key press before exiting.
-func PrintError(err error, art string) {
+// PrintError writes Inspector Gadget art and err in red, then waits for a key press before exiting.
+func PrintError(err error) {
 	fmt.Print(colorRed)
-	fmt.Print(art)
+	fmt.Print(ascii.InspectorGadget())
 	fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 	fmt.Print(colorReset)
 	fmt.Print("Press any key to close...")
