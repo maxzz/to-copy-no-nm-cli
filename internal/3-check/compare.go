@@ -45,7 +45,8 @@ func Compare(src, dst string, reporter progress.Reporter) (CompareResult, error)
 		return CompareResult{}, fmt.Errorf("scan source: %w", err)
 	}
 
-	dstFiles, err := collectFiles(dst, reporter)
+	// Destination is scanned silently so folder lines and totals are not duplicated.
+	dstFiles, err := collectFiles(dst, progress.NopReporter{})
 	if err != nil {
 		return CompareResult{}, fmt.Errorf("scan destination: %w", err)
 	}
@@ -115,7 +116,7 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 			return err
 		}
 
-		folderLabel := folderDisplayName(rootLabel, filepath.Dir(rel))
+		folderLabel := progress.BucketFolder(rootLabel, rel)
 		if folderLabel != currentFolder {
 			completeFolder()
 			currentFolder = folderLabel
@@ -152,13 +153,6 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 
 	completeFolder()
 	return files, nil
-}
-
-func folderDisplayName(rootLabel, relDir string) string {
-	if relDir == "." {
-		return rootLabel
-	}
-	return filepath.Join(rootLabel, relDir)
 }
 
 func signaturesEqual(a, b fileSignature) bool {

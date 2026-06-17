@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -114,7 +113,7 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 }
 
 func (d *FolderDisplay) printChangeReport(changes []ChangeEntry, srcRootLabel string) {
-	byFolder := groupChangesByFolder(changes, srcRootLabel)
+	byFolder := GroupChangesByBucket(changes, srcRootLabel)
 
 	folders := make([]string, 0, len(byFolder))
 	for folder := range byFolder {
@@ -148,22 +147,6 @@ func (d *FolderDisplay) folderCountForReport(folder string) int {
 		return count
 	}
 	return 0
-}
-
-func groupChangesByFolder(changes []ChangeEntry, srcRootLabel string) map[string][]ChangeEntry {
-	byFolder := make(map[string][]ChangeEntry)
-	for _, change := range changes {
-		folder := folderDisplayName(srcRootLabel, filepath.Dir(change.RelPath))
-		byFolder[folder] = append(byFolder[folder], change)
-	}
-	return byFolder
-}
-
-func folderDisplayName(rootLabel, relDir string) string {
-	if relDir == "." {
-		return rootLabel
-	}
-	return filepath.Join(rootLabel, relDir)
 }
 
 func (d *FolderDisplay) finalizeActiveFolderLocked() {
