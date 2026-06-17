@@ -11,7 +11,7 @@ import (
 
 var errUsage = errors.New("usage")
 
-func resolveAndValidatePaths(args []string) (src, dst string, err error) {
+func resolveAndValidatePaths(args []string, destinationMustExist bool) (src, dst string, err error) {
 	if len(args) != 2 {
 		return "", "", errUsage
 	}
@@ -34,7 +34,11 @@ func resolveAndValidatePaths(args []string) (src, dst string, err error) {
 		return "", "", err
 	}
 
-	if err := requireOrCreateDirectory(dst); err != nil {
+	if destinationMustExist {
+		if err := requireDirectory("destination", dst, true); err != nil {
+			return "", "", err
+		}
+	} else if err := requireOrCreateDirectory(dst); err != nil {
 		return "", "", err
 	}
 

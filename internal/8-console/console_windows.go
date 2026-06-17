@@ -75,6 +75,17 @@ func PrintError(err error, art string) {
 	os.Exit(1)
 }
 
+func PrintCheckSuccess(fileCount int) {
+	fmt.Printf(
+		"%sCheck passed: %d files match (size and modification time), excluding node_modules and .git.%s\n",
+		colorGreen,
+		fileCount,
+		colorReset,
+	)
+	time.Sleep(1500 * time.Millisecond)
+	os.Exit(0)
+}
+
 func PrintSuccess(art string) {
 	fmt.Print(colorGreen)
 	fmt.Print(art)

@@ -4,11 +4,9 @@ TODO: maybe ask to create only js version since binaty is skipped by npmjs
 TODO: how esbuild is distributed with binaries?
 
 DONE: Add github address to package.json
-
-DONE: in help options are printed too dim
-DONE: option copy hidden .git folder by default no
+DONE: In help options are printed too dim
+DONE: Option copy hidden .git folder by default no
 DONE: show default values for options
-
 DONE: If folder is node_modules just skip it and don't check it's subfolders
 
 TODO: show progress of deleting and coping files (like clean up # files; copied: # files as line that is updating every ~10 files); after done show counter for number of processed files

@@ -36,6 +36,18 @@
             ]
         },
         {
+            "name": "Debug copy-no-nm (--check)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/copy-no-nm",
+            "args": [
+                "--check",
+                "${input:sourceDir}",
+                "${input:destinationDir}"
+            ]
+        },
+        {
             "name": "Debug copy-no-nm (usage)",
             "type": "go",
             "request": "launch",

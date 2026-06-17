@@ -7,18 +7,21 @@ import (
 	"flag"
 	"fmt"
 
+	recycle "copy-no-nm/internal/1-recycle"
+	copydir "copy-no-nm/internal/2-copydir"
+	checkdir "copy-no-nm/internal/3-check"
+	console "copy-no-nm/internal/8-console"
 	ascii "copy-no-nm/internal/8-result-ascii"
-	"copy-no-nm/internal/8-console"
-	"copy-no-nm/internal/2-copydir"
-	"copy-no-nm/internal/1-recycle"
 )
 
 var version = "dev"
 
 func main() {
 	var copyGit bool
+	var check bool
 	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
 	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
+	flag.BoolVar(&check, "check", false, "verify source and destination match by file size and modification time")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -26,13 +29,21 @@ func main() {
 
 	gadget := ascii.InspectorGadget()
 
-	src, dst, err := resolveAndValidatePaths(flag.Args())
+	src, dst, err := resolveAndValidatePaths(flag.Args(), check)
 	if errors.Is(err, errUsage) {
 		printUsageMessage("Please provide a source folder and a destination folder.")
 	}
 
 	if err != nil {
 		console.PrintError(err, gadget)
+	}
+
+	if check {
+		fileCount, err := checkdir.Compare(src, dst)
+		if err != nil {
+			console.PrintError(fmt.Errorf("check failed: %w", err), gadget)
+		}
+		console.PrintCheckSuccess(fileCount)
 	}
 
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
@@ -64,6 +75,11 @@ func printUsageMessage(message string) {
 
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
+		{
+			Flag: "--check",
+			Description: "Verify source and destination are identical using file size and modification time " +
+				"(default: off; excludes node_modules and .git; does not copy or clear)",
+		},
 		{
 			Flag: "-g, --copy-git",
 			Description: "Copy the .git folder from the source root and clear the destination .git folder " +
