@@ -18,6 +18,7 @@ const (
 	colorYellow  = "\x1b[33m"
 	colorGreen   = "\x1b[32m"
 	colorRed     = "\x1b[31m"
+	colorCyan    = "\x1b[36m"
 	colorDim     = "\x1b[2m\x1b[90m"
 	colorReset   = "\x1b[0m"
 	changeLegend = "Required updates: A = add, M = modify, D = delete"
@@ -96,7 +97,7 @@ func (d *FolderDisplay) RecordAction(marker rune, relPath string) {
 
 // Finish prints the tree report, totals, a legend, and waits for any key.
 // When changes is nil, actions recorded via RecordAction are used.
-func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
+func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel, operation string) {
 	d.mu.Lock()
 	d.stopAnimationLocked()
 	totalFiles := d.totalFiles
@@ -107,7 +108,7 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 	d.mu.Unlock()
 
 	fmt.Fprint(d.out, "\n")
-	d.printTreeReport(srcRootLabel, totalFiles, dirCounts, changes)
+	d.printTreeReport(operation, srcRootLabel, totalFiles, dirCounts, changes)
 
 	fmt.Fprintf(d.out, "\nTotal: %d files in %d folders\n", totalFiles, CountTrackedFolders(dirCounts))
 	if len(changes) > 0 {
@@ -117,7 +118,11 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 	console.WaitForAnyKey()
 }
 
-func (d *FolderDisplay) printTreeReport(rootLabel string, totalFiles int, dirCounts map[string]int, changes []ChangeEntry) {
+func (d *FolderDisplay) printTreeReport(operation, rootLabel string, totalFiles int, dirCounts map[string]int, changes []ChangeEntry) {
+	if operation != "" {
+		fmt.Fprintf(d.out, "%s%s%s\n", colorCyan, operation, colorReset)
+		fmt.Fprint(d.out, "\n")
+	}
 	d.printTopFolderLine(rootLabel, totalFiles)
 
 	report := BuildTreeReport(dirCounts, changes)

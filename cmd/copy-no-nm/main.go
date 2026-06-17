@@ -42,14 +42,16 @@ func main() {
 		if err != nil {
 			console.PrintError(fmt.Errorf("check failed: %w", err))
 		}
-		display.Finish(result.Changes, srcLabel)
+		display.Finish(result.Changes, srcLabel, progress.OperationCheck)
 		os.Exit(0)
 	}
 
 	display := progress.NewFolderDisplay()
 	display.SetSourceRootLabel(srcLabel)
 
+	operation := progress.OperationSync
 	if parsed.options.fullCopy {
+		operation = progress.OperationFullCopy
 		if err := fullcopy.Run(src, dst, fullcopy.Options{
 			CopyGit:  parsed.options.copyGit,
 			Reporter: display,
@@ -65,7 +67,7 @@ func main() {
 		}
 	}
 
-	display.Finish(nil, srcLabel)
+	display.Finish(nil, srcLabel, operation)
 	os.Exit(0)
 }
 
