@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -15,19 +14,15 @@ import (
 )
 
 const (
-	spinnerPad     = " "
-	changeIndent   = "        "
-	colorRed       = "\x1b[31m"
-	colorReset     = "\x1b[0m"
-	changeLegend   = "U = new in source, M = modified, D = extra in destination"
+	colorGray    = "\x1b[90m"
+	colorYellow  = "\x1b[33m"
+	colorGreen   = "\x1b[32m"
+	colorRed     = "\x1b[31m"
+	colorReset   = "\x1b[0m"
+	changeLegend = "U = new in source, M = modified, D = extra in destination"
 )
 
-type folderRow struct {
-	name  string
-	count int
-}
-
-// FolderDisplay prints one line per folder with a pulse-matrix spinner on the active line.
+// FolderDisplay collects scan stats and prints a tree report when finished.
 type FolderDisplay struct {
 	out io.Writer
 
@@ -36,28 +31,25 @@ type FolderDisplay struct {
 	sourceRootLabel string
 	scanRootLabel   string
 
-	folderName string
-	fileCount  int
+	animFolder string
+	animCount  int
 
 	animStop chan struct{}
 	animDone chan struct{}
 
-	completedRows      []folderRow
-	sourceFolderCounts map[string]int
-
-	totalFiles  int
-	folderCount int
+	dirCounts  map[string]int
+	totalFiles int
 }
 
 // NewFolderDisplay writes progress lines to stdout.
 func NewFolderDisplay() *FolderDisplay {
 	return &FolderDisplay{
-		out:                os.Stdout,
-		sourceFolderCounts: make(map[string]int),
+		out:       os.Stdout,
+		dirCounts: make(map[string]int),
 	}
 }
 
-// SetSourceRootLabel marks which scan root supplies folder counts for the change report.
+// SetSourceRootLabel marks which scan root supplies directory statistics.
 func (d *FolderDisplay) SetSourceRootLabel(label string) {
 	d.mu.Lock()
 	d.sourceRootLabel = label
@@ -70,41 +62,36 @@ func (d *FolderDisplay) BeginScan(rootLabel string) {
 	d.mu.Unlock()
 }
 
-func (d *FolderDisplay) BeginFolder(folderPath string) {
+func (d *FolderDisplay) RecordFile(relPath string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	d.finalizeActiveFolderLocked()
-	d.folderName = folderPath
-	d.fileCount = 0
-	d.startAnimationLocked()
-}
-
-func (d *FolderDisplay) UpdateFileCount(count int) {
-	d.mu.Lock()
-	d.fileCount = count
-	d.mu.Unlock()
-}
-
-func (d *FolderDisplay) CompleteFolder() {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.finalizeActiveFolderLocked()
-}
-
-// Finish prints comparison differences, totals, a legend, and waits for any key.
-func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
-	d.mu.Lock()
-	d.finalizeActiveFolderLocked()
-	totalFiles := d.totalFiles
-	totalFolders := d.folderCount
-	d.mu.Unlock()
-
-	if len(changes) > 0 {
-		d.printChangeReport(changes, srcRootLabel)
+	if d.scanRootLabel != d.sourceRootLabel {
+		return
 	}
 
-	fmt.Fprintf(d.out, "\nTotal: %d files in %d folders\n", totalFiles, totalFolders)
+	d.totalFiles++
+	RecordSubtreeCounts(d.dirCounts, relPath)
+
+	d.animFolder = AnimationLabel(relPath)
+	d.animCount++
+	if d.animStop == nil {
+		d.startAnimationLocked()
+	}
+}
+
+// Finish prints the tree report, totals, a legend, and waits for any key.
+func (d *FolderDisplay) Finish(changes []ChangeEntry, _ string) {
+	d.mu.Lock()
+	d.stopAnimationLocked()
+	totalFiles := d.totalFiles
+	dirCounts := copyDirCounts(d.dirCounts)
+	d.mu.Unlock()
+
+	fmt.Fprint(d.out, "\n")
+	d.printTreeReport(dirCounts, changes)
+
+	fmt.Fprintf(d.out, "\nTotal: %d files in %d folders\n", totalFiles, CountTrackedFolders(dirCounts))
 	if len(changes) > 0 {
 		fmt.Fprintf(d.out, "%s\n", changeLegend)
 	}
@@ -112,60 +99,90 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 	console.WaitForAnyKey()
 }
 
-func (d *FolderDisplay) printChangeReport(changes []ChangeEntry, srcRootLabel string) {
-	byFolder := GroupChangesByBucket(changes, srcRootLabel)
+func (d *FolderDisplay) printTreeReport(dirCounts map[string]int, changes []ChangeEntry) {
+	report := BuildTreeReport(dirCounts, changes)
+	hasRootFiles := len(report.RootChanges) > 0
 
-	folders := make([]string, 0, len(byFolder))
-	for folder := range byFolder {
-		folders = append(folders, folder)
-	}
-	sort.Strings(folders)
+	for i, node := range report.FirstLevel {
+		d.printTopFolderLine(node.Name, node.FileCount)
 
-	fmt.Fprint(d.out, "\n")
-	for _, folder := range folders {
-		entries := byFolder[folder]
-		sort.Slice(entries, func(i, j int) bool {
-			if entries[i].Marker != entries[j].Marker {
-				return entries[i].Marker < entries[j].Marker
-			}
-			return entries[i].RelPath < entries[j].RelPath
-		})
-
-		count := d.folderCountForReport(folder)
-		fmt.Fprint(d.out, colorRed+d.formatLine(spinnerPad, folder, count)+colorReset+"\n")
-		for _, entry := range entries {
-			fmt.Fprintf(d.out, "%s%c  %s\n", changeIndent, entry.Marker, entry.RelPath)
+		moreAfter := hasRootFiles || i < len(report.FirstLevel)-1
+		if len(node.Children) > 0 {
+			d.printSecondLevelBlock(node, moreAfter)
+		} else if len(node.Changes) > 0 {
+			d.printFileChangesAtDepth("", node.Changes, !moreAfter)
 		}
 	}
+
+	if hasRootFiles {
+		d.printFileChangesAtDepth("", report.RootChanges, true)
+	}
 }
 
-func (d *FolderDisplay) folderCountForReport(folder string) int {
-	d.mu.Lock()
-	count, ok := d.sourceFolderCounts[folder]
-	d.mu.Unlock()
-	if ok {
-		return count
-	}
-	return 0
+func (d *FolderDisplay) printTopFolderLine(name string, count int) {
+	fmt.Fprintf(d.out, "%s %s(%d files in all subfolders)%s\n", name, colorGray, count, colorReset)
 }
 
-func (d *FolderDisplay) finalizeActiveFolderLocked() {
-	d.stopAnimationLocked()
+func (d *FolderDisplay) printPrefixedFolderLine(prefix, name string, count int) {
+	fmt.Fprintf(d.out, "%s%s %s(%d files in all subfolders)%s\n", prefix, name, colorGray, count, colorReset)
+}
 
-	if d.folderName == "" {
-		return
+func (d *FolderDisplay) printSecondLevelBlock(node TreeNode, moreAfter bool) {
+	children := node.Children
+
+	for i, child := range children {
+		isLastChild := i == len(children)-1
+		branch := "├──"
+		cont := "│   "
+		if isLastChild {
+			branch = "└──"
+			cont = "    "
+		}
+
+		d.printPrefixedFolderLine(branch, child.Name, child.FileCount)
+		d.printFileChangesAtDepth(cont, child.Changes, true)
 	}
 
-	line := d.formatLine(spinnerPad, d.folderName, d.fileCount)
-	fmt.Fprint(d.out, line+"\n")
-	d.completedRows = append(d.completedRows, folderRow{name: d.folderName, count: d.fileCount})
-	if d.scanRootLabel == d.sourceRootLabel {
-		d.sourceFolderCounts[d.folderName] = d.fileCount
+	if len(node.Changes) > 0 {
+		d.printFileChangesAtDepth("", node.Changes, !moreAfter)
 	}
-	d.totalFiles += d.fileCount
-	d.folderCount++
-	d.folderName = ""
-	d.fileCount = 0
+}
+
+func (d *FolderDisplay) printFileChangesAtDepth(cont string, changes []ChangeEntry, blockEnds bool) {
+	for i, change := range changes {
+		isLast := i == len(changes)-1
+		branch := "├──"
+		if isLast && blockEnds {
+			branch = "└──"
+		}
+		fmt.Fprint(d.out, cont+branch+fileChangeText(change)+"\n")
+	}
+}
+
+func fileChangeText(change ChangeEntry) string {
+	color := colorForMarker(change.Marker)
+	return fmt.Sprintf("File: %s%c %s%s", color, change.Marker, change.RelPath, colorReset)
+}
+
+func colorForMarker(marker rune) string {
+	switch marker {
+	case 'U':
+		return colorGreen
+	case 'M':
+		return colorYellow
+	case 'D':
+		return colorRed
+	default:
+		return ""
+	}
+}
+
+func copyDirCounts(src map[string]int) map[string]int {
+	dst := make(map[string]int, len(src))
+	for k, v := range src {
+		dst[k] = v
+	}
+	return dst
 }
 
 func (d *FolderDisplay) startAnimationLocked() {
@@ -188,15 +205,15 @@ func (d *FolderDisplay) startAnimationLocked() {
 				return
 			case <-ticker.C:
 				d.mu.Lock()
-				name := d.folderName
-				count := d.fileCount
+				folder := d.animFolder
+				count := d.animCount
 				d.mu.Unlock()
 
-				if name == "" {
+				if folder == "" {
 					continue
 				}
 
-				line := d.formatLine(spinner.Next(), name, count)
+				line := fmt.Sprintf("%s %3d %s", spinner.Next(), count, folder)
 				d.mu.Lock()
 				fmt.Fprint(d.out, "\r"+line+strings.Repeat(" ", 8))
 				d.mu.Unlock()
@@ -218,8 +235,6 @@ func (d *FolderDisplay) stopAnimationLocked() {
 	d.mu.Unlock()
 	<-done
 	d.mu.Lock()
-}
 
-func (d *FolderDisplay) formatLine(spinnerChar, folder string, count int) string {
-	return fmt.Sprintf("%s %3d %s", spinnerChar, count, folder)
+	fmt.Fprint(d.out, "\r"+strings.Repeat(" ", 40)+"\r")
 }

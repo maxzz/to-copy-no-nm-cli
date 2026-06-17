@@ -87,18 +87,6 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 	rootLabel := filepath.Base(root)
 	reporter.BeginScan(rootLabel)
 
-	var currentFolder string
-	var folderFileCount int
-
-	completeFolder := func() {
-		if currentFolder == "" {
-			return
-		}
-		reporter.CompleteFolder()
-		currentFolder = ""
-		folderFileCount = 0
-	}
-
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -116,14 +104,7 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 			return err
 		}
 
-		folderLabel := progress.BucketFolder(rootLabel, rel)
-		if folderLabel != currentFolder {
-			completeFolder()
-			currentFolder = folderLabel
-			reporter.BeginFolder(currentFolder)
-		}
-		folderFileCount++
-		reporter.UpdateFileCount(folderFileCount)
+		reporter.RecordFile(rel)
 
 		info, err := entry.Info()
 		if err != nil {
@@ -151,7 +132,6 @@ func collectFiles(root string, reporter progress.Reporter) (map[string]fileSigna
 		return nil, err
 	}
 
-	completeFolder()
 	return files, nil
 }
 
