@@ -90,16 +90,29 @@ func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions, isRoot b
 }
 
 func containsNodeModules(root string) (bool, error) {
-	found := false
-	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
+	entries, err := osReadDir(root)
+	if err != nil {
+		return false, err
+	}
+
+	for _, entry := range entries {
 		if entry.IsDir() && entry.Name() == skipDirName {
-			found = true
-			return fs.SkipAll
+			return true, nil
 		}
-		return nil
-	})
-	return found, err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() || entry.Name() == skipDirName {
+			continue
+		}
+		found, err := containsNodeModules(filepath.Join(root, entry.Name()))
+		if err != nil {
+			return false, err
+		}
+		if found {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
