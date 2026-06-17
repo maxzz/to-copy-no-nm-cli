@@ -4,6 +4,17 @@ Recursively copy a directory to another location while skipping every `node_modu
 
 Built with Go. Distributed on npm with a small Node.js launcher.
 
+- **Repository:** [github.com/maxzz/to-copy-no-nm-cli](https://github.com/maxzz/to-copy-no-nm-cli)
+- **npm package:** [npmjs.com/package/copy-no-nm](https://www.npmjs.com/package/copy-no-nm)
+
+Install from npm:
+
+```bash
+npm install -g copy-no-nm
+# or
+pnpm add -g copy-no-nm
+```
+
 ## Contents
 
 - [Requirements](#requirements)
@@ -175,6 +186,8 @@ Double-clicking the shortcut runs the copy with those paths.
 | `pnpm run publish:npm` | Publish to npm (`--access public`) |
 
 ## Publishing to npm
+
+Published as [`copy-no-nm`](https://www.npmjs.com/package/copy-no-nm). Source code: [maxzz/to-copy-no-nm-cli](https://github.com/maxzz/to-copy-no-nm-cli).
 
 This package ships a prebuilt Windows binary in `dist/` plus a Node launcher in `bin/copy-no-nm.js`.
 
