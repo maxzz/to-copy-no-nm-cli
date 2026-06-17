@@ -4,6 +4,21 @@ Recursively copy a directory to another location while skipping every `node_modu
 
 Built with Go. Distributed on npm with a small Node.js launcher.
 
+## Contents
+
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Options](#options)
+- [Process overview](#process-overview)
+  - [Step 1 — Clear destination](#step-1--clear-destination)
+  - [Step 2 — Copy from source](#step-2--copy-from-source)
+  - [Exit behaviour](#exit-behaviour)
+- [Development](#development)
+  - [Debugging](#debugging)
+- [npm scripts](#npm-scripts)
+- [Publishing to npm](#publishing-to-npm)
+- [License](#license)
+
 ## Requirements
 
 - Windows (Recycle Bin integration and metadata preservation use Windows APIs)

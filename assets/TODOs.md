@@ -10,7 +10,7 @@ DONE: in help options are printed too dim
 DONE: option copy hidden .git folder by default no
 DONE: show default values for options
 
-TODO: if folder is node_modules just skip it and don't check it's subfolders
+DONE: if folder is node_modules just skip it and don't check it's subfolders
 
 TODO: show progress of deleting and coping files (like clean up # files; copied: # files as line that is updating every ~10 files); after done show counter for number of processed files
 

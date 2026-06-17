@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-const skipDirName = "node_modules"
+const nodeModulesDirName = "node_modules" // formaer skipDirName
 const gitDirName = ".git"
 
 // ClearOptions controls how ClearDirectory removes destination contents.
@@ -41,7 +41,7 @@ func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions, isRoot b
 		target := filepath.Join(dir, entry.Name())
 
 		if entry.IsDir() {
-			if entry.Name() == skipDirName {
+			if entry.Name() == nodeModulesDirName {
 				if opts.RemoveNodeModules {
 					if err := MoveToRecycleBin(target); err != nil {
 						return fmt.Errorf("recycle bin: clear %q: %w", target, err)
@@ -96,13 +96,13 @@ func containsNodeModules(root string) (bool, error) {
 	}
 
 	for _, entry := range entries {
-		if entry.IsDir() && entry.Name() == skipDirName {
+		if entry.IsDir() && entry.Name() == nodeModulesDirName {
 			return true, nil
 		}
 	}
 
 	for _, entry := range entries {
-		if !entry.IsDir() || entry.Name() == skipDirName {
+		if !entry.IsDir() || entry.Name() == nodeModulesDirName {
 			continue
 		}
 		found, err := containsNodeModules(filepath.Join(root, entry.Name()))
