@@ -22,6 +22,7 @@ func main() {
 	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
 	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
 	flag.BoolVar(&check, "check", false, "verify source and destination match by file size and modification time")
+	flag.BoolVar(&check, "c", false, "shorthand for --check")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -76,7 +77,7 @@ func printUsageMessage(message string) {
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
 		{
-			Flag: "--check",
+			Flag: "-c, --check",
 			Description: "Verify source and destination are identical using file size and modification time " +
 				"(default: off; excludes node_modules and .git; does not copy or clear)",
 		},

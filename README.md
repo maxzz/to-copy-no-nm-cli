@@ -57,7 +57,7 @@ On start the program prints its name, a short description, and the version (for 
 | Path | Rule |
 |------|------|
 | `<source>` | Must exist and be a directory |
-| `<destination>` | Created automatically if it does not exist (including parent folders); if it already exists, it must be a directory. With `--check`, the destination must already exist. |
+| `<destination>` | Created automatically if it does not exist (including parent folders); if it already exists, it must be a directory. With `-c` / `--check`, the destination must already exist. |
 
 Source and destination must be different paths and cannot contain each other.
 
@@ -65,7 +65,7 @@ Source and destination must be different paths and cannot contain each other.
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--check` | **off** | Verify source and destination match (file size and modification time); excludes `node_modules` and `.git`; does not clear or copy |
+| `-c`, `--check` | **off** | Verify source and destination match (file size and modification time); excludes `node_modules` and `.git`; does not clear or copy |
 | `-g`, `--copy-git` | **off** | Copy the `.git` folder from the **source root** and clear the destination `.git` folder |
 
 `node_modules` is never modified in the destination and is always skipped during the copy. This is intentional — `node_modules` should be recreated by your package manager (especially with pnpm, which uses links inside that folder).
@@ -83,14 +83,14 @@ copy-no-nm "C:\projects\my-app" "D:\backups\new-folder"
 copy-no-nm -g "C:\projects\my-app" "D:\backups\my-app"
 
 # Verify source and destination match (no changes made)
-copy-no-nm --check "C:\projects\my-app" "D:\backups\my-app"
+copy-no-nm -c "C:\projects\my-app" "D:\backups\my-app"
 ```
 
 Run without arguments (or with `-h`) to see in-program help: usage syntax, options with default values, and wrapped descriptions (~80 columns).
 
 ## Process overview
 
-### Check mode (`--check`)
+### Check mode (`-c`, `--check`)
 
 Compares every file under source and destination using **file size** and **modification time**. Folders named `node_modules` or `.git` are ignored at any depth. The destination must already exist. Nothing is cleared or copied.
 
