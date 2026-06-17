@@ -15,9 +15,9 @@ func TestParseCLI_flagsAfterPositionals(t *testing.T) {
 }
 
 func TestParseCLI_flagsBetweenPositionals(t *testing.T) {
-	result := parseCLI([]string{"src", "-s", "dst"})
-	if !result.options.swapPaths {
-		t.Fatal("expected -s to enable swap")
+	result := parseCLI([]string{"src", "-r", "dst"})
+	if !result.options.reversePaths {
+		t.Fatal("expected -r to enable reverse")
 	}
 	if len(result.positionals) != 2 || result.positionals[0] != "src" || result.positionals[1] != "dst" {
 		t.Fatalf("unexpected positionals: %v", result.positionals)

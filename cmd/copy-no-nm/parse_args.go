@@ -10,7 +10,7 @@ import (
 type cliOptions struct {
 	copyGit   bool
 	check     bool
-	swapPaths bool
+	reversePaths bool
 }
 
 type cliParseResult struct {
@@ -26,8 +26,8 @@ var knownBoolFlags = map[string]func(*cliOptions){
 	"copy-git": func(o *cliOptions) { o.copyGit = true },
 	"c":        func(o *cliOptions) { o.check = true },
 	"check":    func(o *cliOptions) { o.check = true },
-	"s":        func(o *cliOptions) { o.swapPaths = true },
-	"swap":     func(o *cliOptions) { o.swapPaths = true },
+	"r":        func(o *cliOptions) { o.reversePaths = true },
+	"reverse":  func(o *cliOptions) { o.reversePaths = true },
 }
 
 func parseCLI(args []string) cliParseResult {
@@ -36,7 +36,7 @@ func parseCLI(args []string) cliParseResult {
 
 	for _, arg := range args {
 		if !isOptionToken(arg) {
-			label := positionalLabel(positionalIndex, result.options.swapPaths)
+			label := positionalLabel(positionalIndex, result.options.reversePaths)
 			result.positionals = append(result.positionals, arg)
 			result.args = append(result.args, console.UsageArg{Label: label, Value: arg})
 			positionalIndex++
@@ -48,7 +48,7 @@ func parseCLI(args []string) cliParseResult {
 		case "h", "help":
 			result.help = true
 			result.args = append(result.args, console.UsageArg{Label: "option", Value: arg})
-		case "g", "copy-git", "c", "check", "s", "swap":
+		case "g", "copy-git", "c", "check", "r", "reverse":
 			knownBoolFlags[name](&result.options)
 			result.args = append(result.args, console.UsageArg{Label: "option", Value: arg})
 		default:
@@ -71,15 +71,15 @@ func optionName(arg string) string {
 	return strings.TrimPrefix(arg, "-")
 }
 
-func positionalLabel(index int, swap bool) string {
+func positionalLabel(index int, reverse bool) string {
 	switch index {
 	case 0:
-		if swap {
+		if reverse {
 			return "destination"
 		}
 		return "source"
 	case 1:
-		if swap {
+		if reverse {
 			return "source"
 		}
 		return "destination"

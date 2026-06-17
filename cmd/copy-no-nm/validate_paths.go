@@ -11,13 +11,13 @@ import (
 
 var errUsage = errors.New("usage")
 
-func resolveAndValidatePaths(args []string, destinationMustExist bool, swap bool) (src, dst string, err error) {
+func resolveAndValidatePaths(args []string, destinationMustExist bool, reverse bool) (src, dst string, err error) {
 	if len(args) != 2 {
 		return "", "", errUsage
 	}
 
 	srcArg, dstArg := args[0], args[1]
-	if swap {
+	if reverse {
 		srcArg, dstArg = args[1], args[0]
 	}
 

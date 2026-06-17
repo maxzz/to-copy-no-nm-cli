@@ -17,3 +17,10 @@ TODO: If folder is lock by another application (like far) the message should be 
 
 TODO: Upon successful completion, output the ASCII character OK.
 TODO: Show progress of deleting and coping files (like clean up # files; copied: # files as line that is updating every ~10 files); after done show counter for number of processed files
+
+TODO: When run inside IDE integrated terminal there is no way to press any key
+TODO: When run --check probably we need to ask press any key or add more delay with ability to close by any key
+
+06.17.26
+DONE: Rename swap to reverse
+TODO: Add new mode sync to copy only changed files; remove non existing anymore; and add new

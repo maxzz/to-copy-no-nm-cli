@@ -56,10 +56,10 @@ On start the program prints its name, a short description, and the version (for 
 
 | Path | Rule |
 |------|------|
-| `<source>` | Must exist and be a directory (second argument when `-s` / `--swap` is on) |
-| `<destination>` | Created automatically if it does not exist (including parent folders); if it already exists, it must be a directory. With `-c` / `--check`, the destination must already exist. First argument when `-s` / `--swap` is on. |
+| `<source>` | Must exist and be a directory (second argument when `-r` / `--reverse` is on) |
+| `<destination>` | Created automatically if it does not exist (including parent folders); if it already exists, it must be a directory. With `-c` / `--check`, the destination must already exist. First argument when `-r` / `--reverse` is on. |
 
-By default arguments are `<source> <destination>`. With `-s` / `--swap`, pass `<destination> <source>` instead.
+By default arguments are `<source> <destination>`. With `-r` / `--reverse`, pass `<destination> <source>` instead.
 
 Source and destination must be different paths and cannot contain each other.
 
@@ -67,7 +67,7 @@ Source and destination must be different paths and cannot contain each other.
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-s`, `--swap` | **off** | Treat the first argument as destination and the second as source |
+| `-r`, `--reverse` | **off** | Treat the first argument as destination and the second as source |
 | `-c`, `--check` | **off** | Verify source and destination match (file size and modification time); excludes `node_modules` and `.git`; does not clear or copy |
 | `-g`, `--copy-git` | **off** | Copy the `.git` folder from the **source root** and clear the destination `.git` folder |
 
@@ -88,8 +88,8 @@ copy-no-nm -g "C:\projects\my-app" "D:\backups\my-app"
 # Verify source and destination match (no changes made)
 copy-no-nm -c "C:\projects\my-app" "D:\backups\my-app"
 
-# Swap argument order: destination first, source second
-copy-no-nm -s "D:\backups\my-app" "C:\projects\my-app"
+# Reverse argument order: destination first, source second
+copy-no-nm -r "D:\backups\my-app" "C:\projects\my-app"
 ```
 
 Run without arguments (or with `-h`) to see in-program help: usage syntax, options with default values, and wrapped descriptions (~80 columns).

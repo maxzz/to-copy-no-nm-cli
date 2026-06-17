@@ -27,7 +27,7 @@ func main() {
 		printUsageMessage("Please provide a source folder and a destination folder.", parsed.args)
 	}
 
-	src, dst, err := resolveAndValidatePaths(parsed.positionals, parsed.options.check, parsed.options.swapPaths)
+	src, dst, err := resolveAndValidatePaths(parsed.positionals, parsed.options.check, parsed.options.reversePaths)
 	if err != nil {
 		console.PrintError(err)
 	}
@@ -71,7 +71,7 @@ func printUsageMessage(message string, args []console.UsageArg) {
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
 		{
-			Flag: "-s, --swap",
+			Flag: "-r, --reverse",
 			Description: "Treat the first argument as destination and the second as source " +
 				"(default: off; normal order is source then destination)",
 		},

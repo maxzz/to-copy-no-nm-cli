@@ -1021,13 +1021,13 @@ Updated:
 
 **User**
 
-Add an option to swap the input parameters—specifically, the source folder (first parameter) and the destination folder (second parameter). By default, this option is disabled; however, if enabled, the first parameter is treated as the destination folder and the second as the source folder.
+Add an option to reverse the input parameter order—specifically, the source folder (first parameter) and the destination folder (second parameter). By default, this option is disabled; however, if enabled, the first parameter is treated as the destination folder and the second as the source folder.
 
 ---
 
 **Cursor**
 
-Added `-s, --swap` (default **off**).
+Added `-r, --reverse` (default **off**).
 
 When enabled:
 - **1st argument** → destination  
@@ -1035,7 +1035,7 @@ When enabled:
 
 ```bash
 # Same as: copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
-copy-no-nm -s "D:\backups\my-app" "C:\projects\my-app"
+copy-no-nm -r "D:\backups\my-app" "C:\projects\my-app"
 ```
 
 Updated: `validate_paths.go`, `main.go` (flag + help), and `README.md` (paths table, options, example).
