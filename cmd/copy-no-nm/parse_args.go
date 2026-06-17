@@ -8,9 +8,10 @@ import (
 )
 
 type cliOptions struct {
-	copyGit   bool
-	check     bool
+	copyGit      bool
+	check        bool
 	reversePaths bool
+	fullCopy     bool
 }
 
 type cliParseResult struct {
@@ -28,6 +29,8 @@ var knownBoolFlags = map[string]func(*cliOptions){
 	"check":    func(o *cliOptions) { o.check = true },
 	"r":        func(o *cliOptions) { o.reversePaths = true },
 	"reverse":  func(o *cliOptions) { o.reversePaths = true },
+	"f":        func(o *cliOptions) { o.fullCopy = true },
+	"full":     func(o *cliOptions) { o.fullCopy = true },
 }
 
 func parseCLI(args []string) cliParseResult {
@@ -48,7 +51,7 @@ func parseCLI(args []string) cliParseResult {
 		case "h", "help":
 			result.help = true
 			result.args = append(result.args, console.UsageArg{Label: "option", Value: arg})
-		case "g", "copy-git", "c", "check", "r", "reverse":
+		case "g", "copy-git", "c", "check", "r", "reverse", "f", "full":
 			knownBoolFlags[name](&result.options)
 			result.args = append(result.args, console.UsageArg{Label: "option", Value: arg})
 		default:

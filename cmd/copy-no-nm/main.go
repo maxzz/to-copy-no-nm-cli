@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	recycle "copy-no-nm/internal/1-recycle"
-	copydir "copy-no-nm/internal/2-copydir"
 	checkdir "copy-no-nm/internal/3-check"
+	syncdir "copy-no-nm/internal/4-syncdir"
+	fullcopy "copy-no-nm/internal/5-fullcopy"
 	console "copy-no-nm/internal/8-console"
 	ascii "copy-no-nm/internal/8-result-ascii"
 )
@@ -40,16 +40,18 @@ func main() {
 		console.PrintCheckSuccess(fileCount)
 	}
 
-	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
-		CopyGit: parsed.options.copyGit,
-	}); err != nil {
-		console.PrintError(fmt.Errorf("clear destination: %w", err))
-	}
-
-	if err := copydir.Copy(src, dst, copydir.CopyOptions{
-		CopyGit: parsed.options.copyGit,
-	}); err != nil {
-		console.PrintError(fmt.Errorf("copy failed: %w", err))
+	if parsed.options.fullCopy {
+		if err := fullcopy.Run(src, dst, fullcopy.Options{
+			CopyGit: parsed.options.copyGit,
+		}); err != nil {
+			console.PrintError(fmt.Errorf("full copy failed: %w", err))
+		}
+	} else {
+		if err := syncdir.Sync(src, dst, syncdir.SyncOptions{
+			CopyGit: parsed.options.copyGit,
+		}); err != nil {
+			console.PrintError(fmt.Errorf("sync failed: %w", err))
+		}
 	}
 
 	console.PrintSuccess(ascii.BuildOK())
@@ -70,6 +72,11 @@ func printUsageMessage(message string, args []console.UsageArg) {
 
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
+		{
+			Flag: "-f, --full",
+			Description: "Copy every file after clearing the destination via the Recycle Bin " +
+				"(default: off; sync mode copies only new or changed files and removes extras)",
+		},
 		{
 			Flag: "-r, --reverse",
 			Description: "Treat the first argument as destination and the second as source " +

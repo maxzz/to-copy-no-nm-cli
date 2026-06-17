@@ -31,6 +31,13 @@ func TestParseCLI_unknownOption(t *testing.T) {
 	}
 }
 
+func TestParseCLI_fullCopyFlag(t *testing.T) {
+	result := parseCLI([]string{"--full", "src", "dst"})
+	if !result.options.fullCopy {
+		t.Fatal("expected --full to enable full copy")
+	}
+}
+
 func TestParseCLI_describesArgsInOrder(t *testing.T) {
 	result := parseCLI([]string{"src", "-c", "dst"})
 	if len(result.args) != 3 {

@@ -23,4 +23,4 @@ TODO: When run --check probably we need to ask press any key or add more delay w
 
 06.17.26
 DONE: Rename swap to reverse
-TODO: Add new mode sync to copy only changed files; remove non existing anymore; and add new
+DONE: Add new mode sync to copy only changed files; remove non existing anymore; and add new

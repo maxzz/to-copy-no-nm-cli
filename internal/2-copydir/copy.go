@@ -99,6 +99,40 @@ func Copy(src, dst string, opts CopyOptions) error {
 	})
 }
 
+// CopyRel copies a single file or symlink from srcRoot/rel to dstRoot/rel.
+func CopyRel(srcRoot, dstRoot, rel string, opts CopyOptions) error {
+	srcPath := filepath.Join(srcRoot, rel)
+	dstPath := filepath.Join(dstRoot, rel)
+
+	info, err := os.Lstat(srcPath)
+	if err != nil {
+		return fmt.Errorf("stat %q: %w", srcPath, err)
+	}
+
+	mode := info.Mode()
+
+	if mode&os.ModeSymlink != 0 {
+		link, err := os.Readlink(srcPath)
+		if err != nil {
+			return fmt.Errorf("read symlink %q: %w", srcPath, err)
+		}
+		_ = os.Remove(dstPath)
+		if err := os.Symlink(link, dstPath); err != nil {
+			return fmt.Errorf("create symlink %q: %w", dstPath, err)
+		}
+		return copyFileMetadata(srcPath, dstPath)
+	}
+
+	if info.IsDir() {
+		return fmt.Errorf("CopyRel does not copy directories: %s", rel)
+	}
+
+	if err := copyPlatformFile(srcPath, dstPath); err != nil {
+		return fmt.Errorf("copy file %q: %w", srcPath, err)
+	}
+	return nil
+}
+
 func samePath(a, b string) bool {
 	a = filepath.Clean(a)
 	b = filepath.Clean(b)

@@ -1,6 +1,6 @@
 # copy-no-nm
 
-Recursively copy a directory to another location while skipping every `node_modules` folder. The copy preserves file creation times, modification times, access times, and attributes. Before copying, the destination folder is cleared selectively via the Windows Recycle Bin.
+Recursively copy a directory to another location while skipping every `node_modules` folder. By default the tool **synchronizes** the destination with the source (copies only new or changed files and removes extras). Use `-f` / `--full` for a full copy that clears the destination via the Recycle Bin first. File metadata (creation time, modification time, access time, attributes) is preserved on copied items.
 
 Built with Go. Distributed on npm with a small Node.js launcher.
 
@@ -22,8 +22,9 @@ pnpm add -g copy-no-nm
 - [Paths](#paths)
 - [Options](#options)
 - [Process overview](#process-overview)
-  - [Step 1 — Clear destination](#step-1--clear-destination)
-  - [Step 2 — Copy from source](#step-2--copy-from-source)
+  - [Sync mode (default)](#sync-mode-default)
+  - [Full copy mode (`-f`, `--full`)](#full-copy-mode-f---full)
+  - [Check mode (`-c`, `--check`)](#check-mode-c---check)
   - [Console output](#console-output)
 - [Development](#development)
   - [Debugging](#debugging)
@@ -67,6 +68,7 @@ Source and destination must be different paths and cannot contain each other.
 
 | Flag | Default | Description |
 |------|---------|-------------|
+| `-f`, `--full` | **off** | Full copy: clear the destination via Recycle Bin, then copy every file |
 | `-r`, `--reverse` | **off** | Treat the first argument as destination and the second as source |
 | `-c`, `--check` | **off** | Verify source and destination match (file size and modification time); excludes `node_modules` and `.git`; does not clear or copy |
 | `-g`, `--copy-git` | **off** | Copy the `.git` folder from the **source root** and clear the destination `.git` folder |
@@ -85,6 +87,9 @@ copy-no-nm "C:\projects\my-app" "D:\backups\new-folder"
 # Also sync the root .git folder
 copy-no-nm -g "C:\projects\my-app" "D:\backups\my-app"
 
+# Full copy: clear destination then copy everything
+copy-no-nm -f "C:\projects\my-app" "D:\backups\my-app"
+
 # Verify source and destination match (no changes made)
 copy-no-nm -c "C:\projects\my-app" "D:\backups\my-app"
 
@@ -96,17 +101,21 @@ Run without arguments (or with `-h`) to see in-program help: usage syntax, optio
 
 ## Process overview
 
-### Check mode (`-c`, `--check`)
+### Sync mode (default)
 
-Compares every file under source and destination using **file size** and **modification time**. Folders named `node_modules` or `.git` are ignored at any depth. The destination must already exist. Nothing is cleared or copied.
+Synchronizes the destination with the source using **file size** and **modification time**:
 
-Reports the first mismatch (missing, extra, or different file) or prints a green summary when all compared files match.
+- Copies files that are new in the source or differ from the destination
+- Removes files present in the destination but absent from the source (via Recycle Bin)
+- Skips unchanged files
+- Preserves `node_modules` folders in the destination (never scanned, deleted, or compared)
+- Skips the root `.git` folder unless `-g` / `--copy-git` is on (same rules as copy)
 
-### Copy mode (default)
+### Full copy mode (`-f`, `--full`)
 
 Each run performs two steps: **clear destination**, then **copy from source**.
 
-### Step 1 — Clear destination
+#### Step 1 — Clear destination
 
 | Item in destination | Default (`-g` off) | With `-g` |
 |---------------------|--------------------|-----------|
@@ -118,7 +127,7 @@ Each run performs two steps: **clear destination**, then **copy from source**.
 
 `node_modules` folders in the destination are never deleted or inspected.
 
-### Step 2 — Copy from source
+#### Step 2 — Copy from source
 
 | Item in source | Default (`-g` off) | With `-g` |
 |----------------|--------------------|-----------|
@@ -128,6 +137,12 @@ Each run performs two steps: **clear destination**, then **copy from source**.
 
 File creation dates, timestamps, and attributes are preserved on copied items (including read-only files such as git objects).
 
+### Check mode (`-c`, `--check`)
+
+Compares every file under source and destination using **file size** and **modification time**. Folders named `node_modules` or `.git` are ignored at any depth. The destination must already exist. Nothing is cleared or copied.
+
+Reports the first mismatch (missing, extra, or different file) or prints a green summary when all compared files match.
+
 ### Console output
 
 | Situation | Behaviour |
@@ -136,7 +151,7 @@ File creation dates, timestamps, and attributes are preserved on copied items (i
 | Check failed | Inspector Gadget in red, error message, press any key to close |
 | Check passed | Green summary with file count, then the app closes |
 | Runtime error | Inspector Gadget in red, error message, press any key to close |
-| Copy success | Inspector Gadget in green for 1.5 seconds, then the app closes |
+| Copy or sync success | Inspector Gadget in green for 1.5 seconds, then the app closes |
 
 ## Development
 
