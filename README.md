@@ -1,6 +1,6 @@
 # copy-no-nm
 
-Recursively copy a directory to another location while skipping every `node_modules` folder. The copy preserves file creation times, modification times, access times, and attributes. Before copying, everything already in the destination folder is sent to the Windows Recycle Bin.
+Recursively copy a directory to another location while skipping every `node_modules` folder. The copy preserves file creation times, modification times, access times, and attributes. Before copying, the destination folder is cleared selectively via the Windows Recycle Bin.
 
 Built with Go. Distributed on npm with a small Node.js launcher.
 
@@ -13,7 +13,7 @@ Built with Go. Distributed on npm with a small Node.js launcher.
 ## Usage
 
 ```bash
-copy-no-nm <source> <destination>
+copy-no-nm [options] <source> <destination>
 ```
 
 Example:
@@ -22,20 +22,57 @@ Example:
 copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
 ```
 
-### Behavior
+## Options
 
-1. Existing destination contents are cleared to the Recycle Bin using selective rules (`node_modules` folders are kept by default).
-2. `<source>` is copied recursively into `<destination>`.
-3. Any directory named `node_modules` is skipped during the copy.
-4. File creation dates, timestamps, and attributes are preserved.
-5. On error: Inspector Gadget is shown in red, then the app waits for a key press before closing.
-6. On success: Inspector Gadget is shown in green for 1.5 seconds, then the app closes.
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-r`, `--remove-node-modules` | **off** | Delete `node_modules` folders (including nested) in the destination before copying |
+| `-g`, `--copy-git` | **off** | Copy the `.git` folder from the **source root** and clear the destination `.git` folder |
 
-### Clearing the destination
+Examples:
 
-By default, `node_modules` folders in the destination are **not** deleted. Other subfolders are removed as a whole unless they contain a nested `node_modules` folder; in that case the same rules are applied inside that subfolder.
+```bash
+# Defaults: keep destination node_modules and .git; skip copying source .git
+copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
 
-Use `--remove-node-modules` to also send `node_modules` folders (including nested ones) to the Recycle Bin.
+# Also remove node_modules from destination before copy
+copy-no-nm -r "C:\projects\my-app" "D:\backups\my-app"
+
+# Also sync the root .git folder
+copy-no-nm -g "C:\projects\my-app" "D:\backups\my-app"
+
+# Both flags
+copy-no-nm -r -g "C:\projects\my-app" "D:\backups\my-app"
+```
+
+## Process overview
+
+Each run performs two steps: **clear destination**, then **copy from source**.
+
+### Step 1 — Clear destination
+
+| Item in destination | Default (`-r` off, `-g` off) | With `-r` | With `-g` |
+|---------------------|--------------------------------|-----------|-----------|
+| Files at any level | Recycle Bin | Recycle Bin | Recycle Bin |
+| `node_modules` folders | **Kept** | Recycle Bin | **Kept** |
+| Root `.git` folder | **Kept** | **Kept** | Recycle Bin |
+| Other subfolders without nested `node_modules` | Recycle Bin (whole folder) | Recycle Bin | Recycle Bin |
+| Subfolders containing nested `node_modules` | Cleared recursively with same rules | Cleared recursively with same rules | Cleared recursively with same rules |
+
+### Step 2 — Copy from source
+
+| Item in source | Default (`-g` off) | With `-g` |
+|----------------|--------------------|-----------|
+| All files and folders | Copied | Copied |
+| `node_modules` folders (anywhere) | **Skipped** | **Skipped** |
+| Root `.git` folder | **Skipped** | Copied |
+
+File creation dates, timestamps, and attributes are preserved on copied items.
+
+### Exit behaviour
+
+- On error: Inspector Gadget is shown in red, then the app waits for a key press before closing.
+- On success: Inspector Gadget is shown in green for 1.5 seconds, then the app closes.
 
 ## Development
 
@@ -64,6 +101,10 @@ pnpm link --global
 copy-no-nm <source> <destination>
 ```
 
+### Debugging
+
+See `.vscode/launch.json` for ready-made debug configurations (F5 in Cursor/VS Code with the Go extension).
+
 ## npm scripts
 
 | Script | Description |
@@ -80,8 +121,6 @@ This package ships a prebuilt Windows binary in `dist/` plus a Node launcher in 
 pnpm run build
 pnpm run publish:npm
 ```
-
-For cross-platform npm installs, consider splitting platform-specific binaries into separate packages listed under `optionalDependencies`.
 
 Replace the temporary icon by editing `assets/icon-source.png`, then run `pnpm run build` again.
 

@@ -9,12 +9,16 @@ import (
 )
 
 const skipDirName = "node_modules"
+const gitDirName = ".git"
 
 // ClearOptions controls how ClearDirectory removes destination contents.
 type ClearOptions struct {
 	// RemoveNodeModules deletes node_modules folders (including nested ones).
-	// By default they are left untouched.
+	// Default: false (left untouched).
 	RemoveNodeModules bool
+	// CopyGit deletes the root .git folder in the destination before copying.
+	// Default: false (left untouched).
+	CopyGit bool
 }
 
 // ClearDirectory clears destination contents before copying.
@@ -29,16 +33,25 @@ func ClearDirectory(dir string, opts ClearOptions) error {
 		return err
 	}
 
-	return clearEntries(dir, entries, opts)
+	return clearEntries(dir, entries, opts, true)
 }
 
-func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions) error {
+func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions, isRoot bool) error {
 	for _, entry := range entries {
 		target := filepath.Join(dir, entry.Name())
 
 		if entry.IsDir() {
 			if entry.Name() == skipDirName {
 				if opts.RemoveNodeModules {
+					if err := MoveToRecycleBin(target); err != nil {
+						return fmt.Errorf("recycle bin: clear %q: %w", target, err)
+					}
+				}
+				continue
+			}
+
+			if isRoot && entry.Name() == gitDirName {
+				if opts.CopyGit {
 					if err := MoveToRecycleBin(target); err != nil {
 						return fmt.Errorf("recycle bin: clear %q: %w", target, err)
 					}
@@ -56,7 +69,7 @@ func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions) error {
 				if err != nil {
 					return fmt.Errorf("read %q: %w", target, err)
 				}
-				if err := clearEntries(target, childEntries, opts); err != nil {
+				if err := clearEntries(target, childEntries, opts, false); err != nil {
 					return err
 				}
 				continue

@@ -9,9 +9,17 @@ import (
 )
 
 const skipDirName = "node_modules"
+const gitDirName = ".git"
+
+// CopyOptions controls copy behaviour.
+type CopyOptions struct {
+	// CopyGit copies the .git folder at the root of the source directory.
+	// Default: false (skipped).
+	CopyGit bool
+}
 
 // Copy copies src into dst, skipping node_modules directories and preserving file metadata.
-func Copy(src, dst string) error {
+func Copy(src, dst string, opts CopyOptions) error {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
@@ -49,6 +57,10 @@ func Copy(src, dst string) error {
 		}
 
 		if entry.IsDir() && entry.Name() == skipDirName {
+			return filepath.SkipDir
+		}
+
+		if !opts.CopyGit && entry.IsDir() && entry.Name() == gitDirName && rel == gitDirName {
 			return filepath.SkipDir
 		}
 

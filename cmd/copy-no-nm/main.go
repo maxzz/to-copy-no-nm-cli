@@ -17,8 +17,11 @@ var version = "dev"
 
 func main() {
 	var removeNodeModules bool
-	flag.BoolVar(&removeNodeModules, "remove-node-modules", false, "also delete node_modules folders (including nested) in the destination")
+	var copyGit bool
+	flag.BoolVar(&removeNodeModules, "remove-node-modules", false, "delete node_modules folders in the destination before copying")
 	flag.BoolVar(&removeNodeModules, "r", false, "shorthand for --remove-node-modules")
+	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
+	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -37,11 +40,14 @@ func main() {
 
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
 		RemoveNodeModules: removeNodeModules,
+		CopyGit:           copyGit,
 	}); err != nil {
 		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
 	}
 
-	if err := copydir.Copy(src, dst); err != nil {
+	if err := copydir.Copy(src, dst, copydir.CopyOptions{
+		CopyGit: copyGit,
+	}); err != nil {
 		console.PrintError(fmt.Errorf("copy failed: %w", err), gadget)
 	}
 
@@ -56,14 +62,21 @@ func printUsageMessage(message string) {
 	console.PrintUsage(console.UsageHelp{
 		Message: message,
 		Syntax:  "copy-no-nm [options] <source> <destination>",
-		Options: []console.UsageOption{
-			{
-				Flag:        "-r, --remove-node-modules",
-				Description: "Also delete node_modules folders (including nested) in the destination before copying",
-			},
-		},
+		Options: usageOptions(),
 	})
 }
 
-//TODO: better icon
-//TODO: publish to npm
+func usageOptions() []console.UsageOption {
+	return []console.UsageOption{
+		{
+			Flag: "-r, --remove-node-modules",
+			Description: "Delete node_modules folders (including nested) in the destination before copying " +
+				"(default: off; destination node_modules are kept)",
+		},
+		{
+			Flag: "-g, --copy-git",
+			Description: "Copy the .git folder from the source root and clear the destination .git folder " +
+				"(default: off; source .git is not copied, destination .git is kept)",
+		},
+	}
+}
