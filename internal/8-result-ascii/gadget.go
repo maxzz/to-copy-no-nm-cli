@@ -1,6 +1,18 @@
 package ascii
 
-// InspectorGadget returns ASCII art shown on successful copy.
+// BuildOK returns ASCII art shown on successful copy.
+func BuildOK() string {
+	return "" +
+		"                                                 ____    _\n" +
+		"                                                / __ \\  | |\n" +
+		"                                               | |  | | | | __\n" +
+		"                                               | |  | | | |/ /\n" +
+		"                                               | |__| | |   < \n" +
+		"                                                \\____/  |_|\\_\\\n" +
+		"                                                          \n"
+}
+
+// InspectorGadget returns ASCII art shown on errors.
 func InspectorGadget() string {
 	return "" +
 		"                  _..__\n" +

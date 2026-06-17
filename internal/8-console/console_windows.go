@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/signal"
 	"time"
 	"unsafe"
 
@@ -86,11 +87,19 @@ func PrintCheckSuccess(fileCount int) {
 	os.Exit(0)
 }
 
-func PrintSuccess(art string) {
+func PrintSuccess(art string, buildDescription string) {
 	fmt.Print(colorGreen)
 	fmt.Print(art)
 	fmt.Print(colorReset)
-	time.Sleep(1500 * time.Millisecond)
+
+	time.Sleep(500 * time.Millisecond)
+
+	fmt.Printf("%s%s%s\n", colorGray, buildDescription, colorReset)
+	fmt.Printf("\nPress %sCtrl+C%s to close this window.\n", colorGreen, colorReset)
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+	<-sig
 	os.Exit(0)
 }
 
