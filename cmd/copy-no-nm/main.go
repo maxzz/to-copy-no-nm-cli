@@ -62,10 +62,7 @@ func main() {
 		console.PrintError(fmt.Errorf("copy failed: %w", err), gadget)
 	}
 
-	console.PrintSuccess(
-		ascii.BuildOK(),
-		fmt.Sprintf("%s (version %s)", console.ProgramName, version),
-	)
+	console.PrintSuccess(ascii.BuildOK())
 }
 
 func printUsage() {
