@@ -18,8 +18,9 @@ const (
 	colorYellow  = "\x1b[33m"
 	colorGreen   = "\x1b[32m"
 	colorRed     = "\x1b[31m"
+	colorDim     = "\x1b[2m\x1b[90m"
 	colorReset   = "\x1b[0m"
-	changeLegend = "U = new in source, M = modified, D = extra in destination"
+	changeLegend = "Required updates: A = add, M = modify, D = delete"
 )
 
 // FolderDisplay collects scan stats and prints a tree report when finished.
@@ -93,7 +94,7 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 
 	fmt.Fprintf(d.out, "\nTotal: %d files in %d folders\n", totalFiles, CountTrackedFolders(dirCounts))
 	if len(changes) > 0 {
-		fmt.Fprintf(d.out, "%s\n", changeLegend)
+		fmt.Fprintf(d.out, "%s%s%s\n", colorDim, changeLegend, colorReset)
 	}
 	fmt.Fprint(d.out, "\nPress any key to close the window")
 	console.WaitForAnyKey()
@@ -179,11 +180,11 @@ func fileChangeText(change ChangeEntry) string {
 
 func colorForMarker(marker rune) string {
 	switch marker {
-	case 'U':
+	case MarkerAdd:
 		return colorGreen
-	case 'M':
+	case MarkerModify:
 		return colorYellow
-	case 'D':
+	case MarkerDelete:
 		return colorRed
 	default:
 		return ""

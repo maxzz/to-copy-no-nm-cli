@@ -65,17 +65,17 @@ func diffFiles(srcFiles, dstFiles map[string]fileSignature) []progress.ChangeEnt
 	for rel, srcSig := range srcFiles {
 		dstSig, ok := dstFiles[rel]
 		if !ok {
-			changes = append(changes, progress.ChangeEntry{Marker: 'U', RelPath: rel})
+			changes = append(changes, progress.ChangeEntry{Marker: progress.MarkerAdd, RelPath: rel})
 			continue
 		}
 		if !signaturesEqual(srcSig, dstSig) {
-			changes = append(changes, progress.ChangeEntry{Marker: 'M', RelPath: rel})
+			changes = append(changes, progress.ChangeEntry{Marker: progress.MarkerModify, RelPath: rel})
 		}
 	}
 
 	for rel := range dstFiles {
 		if _, ok := srcFiles[rel]; !ok {
-			changes = append(changes, progress.ChangeEntry{Marker: 'D', RelPath: rel})
+			changes = append(changes, progress.ChangeEntry{Marker: progress.MarkerDelete, RelPath: rel})
 		}
 	}
 

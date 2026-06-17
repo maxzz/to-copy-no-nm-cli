@@ -33,9 +33,9 @@ func TestBuildTreeReport(t *testing.T) {
 	}
 
 	changes := []ChangeEntry{
-		{Marker: 'M', RelPath: "README.md"},
-		{Marker: 'U', RelPath: "pnpm-workspace.yaml"},
-		{Marker: 'M', RelPath: `packages\utility\some other filename`},
+		{Marker: MarkerModify, RelPath: "README.md"},
+		{Marker: MarkerAdd, RelPath: "pnpm-workspace.yaml"},
+		{Marker: MarkerModify, RelPath: `packages\utility\some other filename`},
 	}
 
 	report := BuildTreeReport(dirCounts, changes)

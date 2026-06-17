@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"copy-no-nm/internal/9-progress"
 )
 
 func TestCompareMatchingTrees(t *testing.T) {
@@ -46,7 +48,7 @@ func TestCompareSkipsNodeModulesAndGit(t *testing.T) {
 	}
 }
 
-func TestCompareDetectsUntrackedFile(t *testing.T) {
+func TestCompareDetectsAddFile(t *testing.T) {
 	src := t.TempDir()
 	dst := t.TempDir()
 
@@ -59,7 +61,7 @@ func TestCompareDetectsUntrackedFile(t *testing.T) {
 	if len(result.Changes) != 1 {
 		t.Fatalf("expected 1 change, got %v", result.Changes)
 	}
-	if result.Changes[0].Marker != 'U' || result.Changes[0].RelPath != "only-src.txt" {
+	if result.Changes[0].Marker != progress.MarkerAdd || result.Changes[0].RelPath != "only-src.txt" {
 		t.Fatalf("unexpected change: %+v", result.Changes[0])
 	}
 }
@@ -78,7 +80,7 @@ func TestCompareDetectsModifiedFile(t *testing.T) {
 	if len(result.Changes) != 1 {
 		t.Fatalf("expected 1 change, got %v", result.Changes)
 	}
-	if result.Changes[0].Marker != 'M' {
+	if result.Changes[0].Marker != progress.MarkerModify {
 		t.Fatalf("expected modified change, got %+v", result.Changes[0])
 	}
 }
@@ -96,7 +98,7 @@ func TestCompareDetectsDeletedFile(t *testing.T) {
 	if len(result.Changes) != 1 {
 		t.Fatalf("expected 1 change, got %v", result.Changes)
 	}
-	if result.Changes[0].Marker != 'D' || result.Changes[0].RelPath != "only-dst.txt" {
+	if result.Changes[0].Marker != progress.MarkerDelete || result.Changes[0].RelPath != "only-dst.txt" {
 		t.Fatalf("unexpected change: %+v", result.Changes[0])
 	}
 }
