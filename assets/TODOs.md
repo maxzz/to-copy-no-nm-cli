@@ -6,10 +6,9 @@ TODO: how esbuild is distributed with binaries?
 
 TODO: add github address to package.json
 
-TODO: in help options are printed too dim
-
-TODO: option copy hidden .git folder by default no - done
-TODO: show default values for options - done
+DONE: in help options are printed too dim
+DONE: option copy hidden .git folder by default no
+DONE: show default values for options
 
 TODO: if folder is node_modules just skip it and don't check it's subfolders
 
