@@ -81,7 +81,7 @@ func (d *FolderDisplay) RecordFile(relPath string) {
 }
 
 // Finish prints the tree report, totals, a legend, and waits for any key.
-func (d *FolderDisplay) Finish(changes []ChangeEntry, _ string) {
+func (d *FolderDisplay) Finish(changes []ChangeEntry, srcRootLabel string) {
 	d.mu.Lock()
 	d.stopAnimationLocked()
 	totalFiles := d.totalFiles
@@ -89,7 +89,7 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, _ string) {
 	d.mu.Unlock()
 
 	fmt.Fprint(d.out, "\n")
-	d.printTreeReport(dirCounts, changes)
+	d.printTreeReport(srcRootLabel, totalFiles, dirCounts, changes)
 
 	fmt.Fprintf(d.out, "\nTotal: %d files in %d folders\n", totalFiles, CountTrackedFolders(dirCounts))
 	if len(changes) > 0 {
@@ -99,18 +99,31 @@ func (d *FolderDisplay) Finish(changes []ChangeEntry, _ string) {
 	console.WaitForAnyKey()
 }
 
-func (d *FolderDisplay) printTreeReport(dirCounts map[string]int, changes []ChangeEntry) {
+func (d *FolderDisplay) printTreeReport(rootLabel string, totalFiles int, dirCounts map[string]int, changes []ChangeEntry) {
+	d.printTopFolderLine(rootLabel, totalFiles)
+
 	report := BuildTreeReport(dirCounts, changes)
 	hasRootFiles := len(report.RootChanges) > 0
 
 	for i, node := range report.FirstLevel {
-		d.printTopFolderLine(node.Name, node.FileCount)
+		isLastFirst := i == len(report.FirstLevel)-1
+		moreAfter := hasRootFiles || !isLastFirst
 
-		moreAfter := hasRootFiles || i < len(report.FirstLevel)-1
+		branch := "├──"
+		cont := "│   "
+		if isLastFirst && !hasRootFiles {
+			branch = "└──"
+			cont = "    "
+		}
+
 		if len(node.Children) > 0 {
-			d.printSecondLevelBlock(node, moreAfter)
-		} else if len(node.Changes) > 0 {
-			d.printFileChangesAtDepth("", node.Changes, !moreAfter)
+			d.printPrefixedFolderLine(branch, node.Name, node.FileCount)
+			d.printSecondLevelBlock(cont, node, moreAfter)
+		} else {
+			d.printPrefixedFolderLine(branch, node.Name, node.FileCount)
+			if len(node.Changes) > 0 {
+				d.printFileChangesAtDepth(cont, node.Changes, isLastFirst && !hasRootFiles)
+			}
 		}
 	}
 
@@ -120,31 +133,31 @@ func (d *FolderDisplay) printTreeReport(dirCounts map[string]int, changes []Chan
 }
 
 func (d *FolderDisplay) printTopFolderLine(name string, count int) {
-	fmt.Fprintf(d.out, "%s %s(%d files in all subfolders)%s\n", name, colorGray, count, colorReset)
+	fmt.Fprintf(d.out, "%s %s(%d files)%s\n", name, colorGray, count, colorReset)
 }
 
 func (d *FolderDisplay) printPrefixedFolderLine(prefix, name string, count int) {
-	fmt.Fprintf(d.out, "%s%s %s(%d files in all subfolders)%s\n", prefix, name, colorGray, count, colorReset)
+	fmt.Fprintf(d.out, "%s%s %s(%d files)%s\n", prefix, name, colorGray, count, colorReset)
 }
 
-func (d *FolderDisplay) printSecondLevelBlock(node TreeNode, moreAfter bool) {
+func (d *FolderDisplay) printSecondLevelBlock(cont string, node TreeNode, moreAfter bool) {
 	children := node.Children
 
 	for i, child := range children {
 		isLastChild := i == len(children)-1
 		branch := "├──"
-		cont := "│   "
+		childCont := cont + "│   "
 		if isLastChild {
 			branch = "└──"
-			cont = "    "
+			childCont = cont + "    "
 		}
 
-		d.printPrefixedFolderLine(branch, child.Name, child.FileCount)
-		d.printFileChangesAtDepth(cont, child.Changes, true)
+		d.printPrefixedFolderLine(cont+branch, child.Name, child.FileCount)
+		d.printFileChangesAtDepth(childCont, child.Changes, true)
 	}
 
 	if len(node.Changes) > 0 {
-		d.printFileChangesAtDepth("", node.Changes, !moreAfter)
+		d.printFileChangesAtDepth(cont, node.Changes, !moreAfter)
 	}
 }
 
