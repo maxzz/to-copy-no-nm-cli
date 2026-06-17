@@ -24,13 +24,13 @@
             ]
         },
         {
-            "name": "Debug copy-no-nm (-r)",
+            "name": "Debug copy-no-nm (-g)",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/copy-no-nm",
             "args": [
-                "-r",
+                "-g",
                 "${input:sourceDir}",
                 "${input:destinationDir}"
             ]

@@ -13,9 +13,6 @@ const gitDirName = ".git"
 
 // ClearOptions controls how ClearDirectory removes destination contents.
 type ClearOptions struct {
-	// RemoveNodeModules deletes node_modules folders (including nested ones).
-	// Default: false (left untouched).
-	RemoveNodeModules bool
 	// CopyGit deletes the root .git folder in the destination before copying.
 	// Default: false (left untouched).
 	CopyGit bool
@@ -42,11 +39,6 @@ func clearEntries(dir string, entries []fs.DirEntry, opts ClearOptions, isRoot b
 
 		if entry.IsDir() {
 			if entry.Name() == nodeModulesDirName {
-				if opts.RemoveNodeModules {
-					if err := MoveToRecycleBin(target); err != nil {
-						return fmt.Errorf("recycle bin: clear %q: %w", target, err)
-					}
-				}
 				continue
 			}
 

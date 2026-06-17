@@ -65,28 +65,21 @@ Source and destination must be different paths and cannot contain each other.
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-r`, `--remove-node-modules` | **off** | Delete `node_modules` folders (including nested) in the destination before copying |
 | `-g`, `--copy-git` | **off** | Copy the `.git` folder from the **source root** and clear the destination `.git` folder |
 
-`node_modules` is always skipped during the copy, regardless of flags. This is done intentionally since `node_modules` should be created manually especially when using pnpm which creates links inside this folder.
+`node_modules` is never modified in the destination and is always skipped during the copy. This is intentional — `node_modules` should be recreated by your package manager (especially with pnpm, which uses links inside that folder).
 
 Examples:
 
 ```bash
-# Defaults: keep destination node_modules and .git; skip copying source .git
+# Default: keep destination node_modules and .git; skip copying source .git
 copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
 
 # Destination folder does not exist yet — it will be created
 copy-no-nm "C:\projects\my-app" "D:\backups\new-folder"
 
-# Also remove node_modules from destination before copy
-copy-no-nm -r "C:\projects\my-app" "D:\backups\my-app"
-
 # Also sync the root .git folder
 copy-no-nm -g "C:\projects\my-app" "D:\backups\my-app"
-
-# Both flags
-copy-no-nm -r -g "C:\projects\my-app" "D:\backups\my-app"
 ```
 
 Run without arguments (or with `-h`) to see in-program help: usage syntax, options with default values, and wrapped descriptions (~80 columns).
@@ -97,15 +90,15 @@ Each run performs two steps: **clear destination**, then **copy from source**.
 
 ### Step 1 — Clear destination
 
-| Item in destination | Default (`-r` off, `-g` off) | With `-r` | With `-g` |
-|---------------------|--------------------------------|-----------|-----------|
-| Files at any level | Recycle Bin | Recycle Bin | Recycle Bin |
-| `node_modules` folders | **Kept** (contents not scanned) | Recycle Bin | **Kept** (contents not scanned) |
-| Root `.git` folder | **Kept** | **Kept** | Recycle Bin |
-| Other subfolders without nested `node_modules` | Recycle Bin (whole folder) | Recycle Bin | Recycle Bin |
-| Subfolders containing nested `node_modules` | Cleared recursively with same rules | Cleared recursively with same rules | Cleared recursively with same rules |
+| Item in destination | Default (`-g` off) | With `-g` |
+|---------------------|--------------------|-----------|
+| Files at any level | Recycle Bin | Recycle Bin |
+| `node_modules` folders | **Always kept** (contents not scanned) | **Always kept** (contents not scanned) |
+| Root `.git` folder | **Kept** | Recycle Bin |
+| Other subfolders without nested `node_modules` | Recycle Bin (whole folder) | Recycle Bin (whole folder) |
+| Subfolders containing nested `node_modules` | Cleared recursively with same rules | Cleared recursively with same rules |
 
-When `-r` is off, `node_modules` folders are left untouched and their contents are not inspected.
+`node_modules` folders in the destination are never deleted or inspected.
 
 ### Step 2 — Copy from source
 

@@ -16,10 +16,7 @@ import (
 var version = "dev"
 
 func main() {
-	var removeNodeModules bool
 	var copyGit bool
-	flag.BoolVar(&removeNodeModules, "remove-node-modules", false, "delete node_modules folders in the destination before copying")
-	flag.BoolVar(&removeNodeModules, "r", false, "shorthand for --remove-node-modules")
 	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
 	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
 	flag.Usage = printUsage
@@ -39,8 +36,7 @@ func main() {
 	}
 
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
-		RemoveNodeModules: removeNodeModules,
-		CopyGit:           copyGit,
+		CopyGit: copyGit,
 	}); err != nil {
 		console.PrintError(fmt.Errorf("clear destination: %w", err), gadget)
 	}
@@ -68,11 +64,6 @@ func printUsageMessage(message string) {
 
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
-		{
-			Flag: "-r, --remove-node-modules",
-			Description: "Delete node_modules folders (including nested) in the destination before copying " +
-				"(default: off; destination node_modules are kept)",
-		},
 		{
 			Flag: "-g, --copy-git",
 			Description: "Copy the .git folder from the source root and clear the destination .git folder " +
