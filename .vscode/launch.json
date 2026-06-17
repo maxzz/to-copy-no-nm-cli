@@ -42,9 +42,9 @@
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/copy-no-nm",
             "args": [
-                "-c",
                 "C:/y/w/2-web/0-dp/utils/pmac",
-                "C:/Users/maxzz/Desktop/pmac"
+                "C:/Users/maxzz/Desktop/pmac",
+                "-c",
             ]
         },
         {

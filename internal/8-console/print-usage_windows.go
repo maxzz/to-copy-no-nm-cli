@@ -16,11 +16,18 @@ type UsageOption struct {
 	Description string
 }
 
+// UsageArg labels one token from the command line.
+type UsageArg struct {
+	Label string
+	Value string
+}
+
 // UsageHelp is the content shown for incorrect user input.
 type UsageHelp struct {
 	Message string
 	Syntax  string
 	Options []UsageOption
+	Args    []UsageArg
 }
 
 // PrintUsage shows a friendly yellow message, gray syntax, dim gray options, then waits for a key.
@@ -42,6 +49,14 @@ func PrintUsage(help UsageHelp) {
 			padding := strings.Repeat(" ", maxFlagLen-len(opt.Flag))
 			prefix := "  " + opt.Flag + padding + " "
 			printWrappedLines(colorGray, prefix, opt.Description, usageWrapWidth, strings.Repeat(" ", optionIndent))
+		}
+		fmt.Println()
+	}
+
+	if len(help.Args) > 0 {
+		fmt.Printf("%sArguments:%s\n", colorGray, colorReset)
+		for _, arg := range help.Args {
+			fmt.Printf("  %s%s:%s %s\n", colorGray, arg.Label, colorReset, arg.Value)
 		}
 		fmt.Println()
 	}

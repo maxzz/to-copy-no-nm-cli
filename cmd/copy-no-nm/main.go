@@ -3,9 +3,8 @@
 package main
 
 import (
-	"errors"
-	"flag"
 	"fmt"
+	"os"
 
 	recycle "copy-no-nm/internal/1-recycle"
 	copydir "copy-no-nm/internal/2-copydir"
@@ -17,30 +16,23 @@ import (
 var version = "dev"
 
 func main() {
-	var copyGit bool
-	var check bool
-	var swapPaths bool
-	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
-	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
-	flag.BoolVar(&check, "check", false, "verify source and destination match by file size and modification time")
-	flag.BoolVar(&check, "c", false, "shorthand for --check")
-	flag.BoolVar(&swapPaths, "swap", false, "treat the first argument as destination and the second as source")
-	flag.BoolVar(&swapPaths, "s", false, "shorthand for --swap")
-	flag.Usage = printUsage
-	flag.Parse()
+	parsed := parseCLI(os.Args[1:])
+	if parsed.help {
+		printUsage()
+	}
 
 	console.PrintVersion(version)
 
-	src, dst, err := resolveAndValidatePaths(flag.Args(), check, swapPaths)
-	if errors.Is(err, errUsage) {
-		printUsageMessage("Please provide a source folder and a destination folder.")
+	if len(parsed.unknown) > 0 || len(parsed.positionals) != 2 {
+		printUsageMessage("Please provide a source folder and a destination folder.", parsed.args)
 	}
 
+	src, dst, err := resolveAndValidatePaths(parsed.positionals, parsed.options.check, parsed.options.swapPaths)
 	if err != nil {
 		console.PrintError(err)
 	}
 
-	if check {
+	if parsed.options.check {
 		fileCount, err := checkdir.Compare(src, dst)
 		if err != nil {
 			console.PrintError(fmt.Errorf("check failed: %w", err))
@@ -49,13 +41,13 @@ func main() {
 	}
 
 	if err := recycle.ClearDirectory(dst, recycle.ClearOptions{
-		CopyGit: copyGit,
+		CopyGit: parsed.options.copyGit,
 	}); err != nil {
 		console.PrintError(fmt.Errorf("clear destination: %w", err))
 	}
 
 	if err := copydir.Copy(src, dst, copydir.CopyOptions{
-		CopyGit: copyGit,
+		CopyGit: parsed.options.copyGit,
 	}); err != nil {
 		console.PrintError(fmt.Errorf("copy failed: %w", err))
 	}
@@ -64,14 +56,15 @@ func main() {
 }
 
 func printUsage() {
-	printUsageMessage("Copy a folder to another location while skipping node_modules during the copy.")
+	printUsageMessage("Copy a folder to another location while skipping node_modules during the copy.", nil)
 }
 
-func printUsageMessage(message string) {
+func printUsageMessage(message string, args []console.UsageArg) {
 	console.PrintUsage(console.UsageHelp{
 		Message: message,
 		Syntax:  "copy-no-nm [options] <source> <destination>",
 		Options: usageOptions(),
+		Args:    args,
 	})
 }
 
