@@ -1,6 +1,6 @@
 {
     "name": "copy-no-nm",
-    "version": "0.26.13",
+    "version": "0.26.14",
     "description": "Copy from one folder to another without the nested node_modules folder",
     "author": "Max Zakharzhevskyi",
     "license": "MIT",
