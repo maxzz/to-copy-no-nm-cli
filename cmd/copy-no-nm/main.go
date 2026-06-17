@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	checkdir "copy-no-nm/internal/3-check"
 	syncdir "copy-no-nm/internal/4-syncdir"
@@ -34,12 +35,14 @@ func main() {
 	}
 
 	if parsed.options.check {
+		srcLabel := filepath.Base(src)
 		display := progress.NewFolderDisplay()
-		_, err := checkdir.Compare(src, dst, display)
+		display.SetSourceRootLabel(srcLabel)
+		result, err := checkdir.Compare(src, dst, display)
 		if err != nil {
 			console.PrintError(fmt.Errorf("check failed: %w", err))
 		}
-		display.Finish()
+		display.Finish(result.Changes, srcLabel)
 		os.Exit(0)
 	}
 

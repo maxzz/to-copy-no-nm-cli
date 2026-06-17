@@ -22,10 +22,17 @@ type fileSignature struct {
 	target  string
 }
 
-// Compare checks that files under src and dst match by size and modification time.
+// CompareResult holds the outcome of a source/destination comparison.
+type CompareResult struct {
+	SourceFileCount int
+	Changes         []progress.ChangeEntry
+}
+
+// Compare checks files under src and dst by size and modification time.
 // Directories named node_modules or .git are excluded at any depth.
+// Differences are returned in CompareResult rather than as errors.
 // Pass nil for reporter when no progress output is needed.
-func Compare(src, dst string, reporter progress.Reporter) (int, error) {
+func Compare(src, dst string, reporter progress.Reporter) (CompareResult, error) {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
@@ -35,36 +42,49 @@ func Compare(src, dst string, reporter progress.Reporter) (int, error) {
 
 	srcFiles, err := collectFiles(src, reporter)
 	if err != nil {
-		return 0, fmt.Errorf("scan source: %w", err)
+		return CompareResult{}, fmt.Errorf("scan source: %w", err)
 	}
 
 	dstFiles, err := collectFiles(dst, reporter)
 	if err != nil {
-		return 0, fmt.Errorf("scan destination: %w", err)
+		return CompareResult{}, fmt.Errorf("scan destination: %w", err)
 	}
+
+	changes := diffFiles(srcFiles, dstFiles)
+
+	return CompareResult{
+		SourceFileCount: len(srcFiles),
+		Changes:         changes,
+	}, nil
+}
+
+func diffFiles(srcFiles, dstFiles map[string]fileSignature) []progress.ChangeEntry {
+	var changes []progress.ChangeEntry
 
 	for rel, srcSig := range srcFiles {
 		dstSig, ok := dstFiles[rel]
 		if !ok {
-			return 0, fmt.Errorf("missing in destination: %s", rel)
+			changes = append(changes, progress.ChangeEntry{Marker: 'U', RelPath: rel})
+			continue
 		}
 		if !signaturesEqual(srcSig, dstSig) {
-			return 0, signatureMismatchError(rel, srcSig, dstSig)
+			changes = append(changes, progress.ChangeEntry{Marker: 'M', RelPath: rel})
 		}
 	}
 
 	for rel := range dstFiles {
 		if _, ok := srcFiles[rel]; !ok {
-			return 0, fmt.Errorf("extra in destination: %s", rel)
+			changes = append(changes, progress.ChangeEntry{Marker: 'D', RelPath: rel})
 		}
 	}
 
-	return len(srcFiles), nil
+	return changes
 }
 
 func collectFiles(root string, reporter progress.Reporter) (map[string]fileSignature, error) {
 	files := make(map[string]fileSignature)
 	rootLabel := filepath.Base(root)
+	reporter.BeginScan(rootLabel)
 
 	var currentFolder string
 	var folderFileCount int
@@ -149,18 +169,4 @@ func signaturesEqual(a, b fileSignature) bool {
 		return false
 	}
 	return a.modTime.Equal(b.modTime)
-}
-
-func signatureMismatchError(rel string, src, dst fileSignature) error {
-	if src.symlink || dst.symlink {
-		return fmt.Errorf("different symlink %s: source %q, destination %q", rel, src.target, dst.target)
-	}
-	return fmt.Errorf(
-		"different file %s: source size=%d mtime=%s, destination size=%d mtime=%s",
-		rel,
-		src.size,
-		src.modTime.Format(time.RFC3339),
-		dst.size,
-		dst.modTime.Format(time.RFC3339),
-	)
 }

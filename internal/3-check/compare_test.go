@@ -12,12 +12,15 @@ func TestCompareMatchingTrees(t *testing.T) {
 
 	mirrorFile(t, filepath.Join(src, "a.txt"), filepath.Join(dst, "a.txt"), "hello")
 
-	count, err := Compare(src, dst, nil)
+	result, err := Compare(src, dst, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if count != 1 {
-		t.Fatalf("expected 1 file, got %d", count)
+	if result.SourceFileCount != 1 {
+		t.Fatalf("expected 1 file, got %d", result.SourceFileCount)
+	}
+	if len(result.Changes) != 0 {
+		t.Fatalf("expected no changes, got %v", result.Changes)
 	}
 }
 
@@ -25,31 +28,76 @@ func TestCompareSkipsNodeModulesAndGit(t *testing.T) {
 	src := t.TempDir()
 	dst := t.TempDir()
 
-	writeFile(t, filepath.Join(src, "keep.txt"), "ok")
-	writeFile(t, filepath.Join(dst, "keep.txt"), "ok")
+	mirrorFile(t, filepath.Join(src, "keep.txt"), filepath.Join(dst, "keep.txt"), "ok")
 	writeFile(t, filepath.Join(src, "node_modules", "pkg", "index.js"), "skip")
 	writeFile(t, filepath.Join(dst, "node_modules", "pkg", "index.js"), "different")
 	writeFile(t, filepath.Join(src, ".git", "HEAD"), "skip")
 	writeFile(t, filepath.Join(dst, ".git", "HEAD"), "different")
 
-	count, err := Compare(src, dst, nil)
+	result, err := Compare(src, dst, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if count != 1 {
-		t.Fatalf("expected 1 file, got %d", count)
+	if result.SourceFileCount != 1 {
+		t.Fatalf("expected 1 file, got %d", result.SourceFileCount)
+	}
+	if len(result.Changes) != 0 {
+		t.Fatalf("expected no changes, got %v", result.Changes)
 	}
 }
 
-func TestCompareDetectsMissingFile(t *testing.T) {
+func TestCompareDetectsUntrackedFile(t *testing.T) {
 	src := t.TempDir()
 	dst := t.TempDir()
 
 	writeFile(t, filepath.Join(src, "only-src.txt"), "x")
 
-	_, err := Compare(src, dst, nil)
-	if err == nil {
-		t.Fatal("expected error for missing destination file")
+	result, err := Compare(src, dst, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Changes) != 1 {
+		t.Fatalf("expected 1 change, got %v", result.Changes)
+	}
+	if result.Changes[0].Marker != 'U' || result.Changes[0].RelPath != "only-src.txt" {
+		t.Fatalf("unexpected change: %+v", result.Changes[0])
+	}
+}
+
+func TestCompareDetectsModifiedFile(t *testing.T) {
+	src := t.TempDir()
+	dst := t.TempDir()
+
+	writeFile(t, filepath.Join(src, "a.txt"), "source")
+	writeFile(t, filepath.Join(dst, "a.txt"), "dest")
+
+	result, err := Compare(src, dst, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Changes) != 1 {
+		t.Fatalf("expected 1 change, got %v", result.Changes)
+	}
+	if result.Changes[0].Marker != 'M' {
+		t.Fatalf("expected modified change, got %+v", result.Changes[0])
+	}
+}
+
+func TestCompareDetectsDeletedFile(t *testing.T) {
+	src := t.TempDir()
+	dst := t.TempDir()
+
+	writeFile(t, filepath.Join(dst, "only-dst.txt"), "x")
+
+	result, err := Compare(src, dst, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Changes) != 1 {
+		t.Fatalf("expected 1 change, got %v", result.Changes)
+	}
+	if result.Changes[0].Marker != 'D' || result.Changes[0].RelPath != "only-dst.txt" {
+		t.Fatalf("unexpected change: %+v", result.Changes[0])
 	}
 }
 
