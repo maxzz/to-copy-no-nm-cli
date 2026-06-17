@@ -11,17 +11,22 @@ import (
 
 var errUsage = errors.New("usage")
 
-func resolveAndValidatePaths(args []string, destinationMustExist bool) (src, dst string, err error) {
+func resolveAndValidatePaths(args []string, destinationMustExist bool, swap bool) (src, dst string, err error) {
 	if len(args) != 2 {
 		return "", "", errUsage
 	}
 
-	src, err = filepath.Abs(args[0])
+	srcArg, dstArg := args[0], args[1]
+	if swap {
+		srcArg, dstArg = args[1], args[0]
+	}
+
+	src, err = filepath.Abs(srcArg)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid source path: %w", err)
 	}
 
-	dst, err = filepath.Abs(args[1])
+	dst, err = filepath.Abs(dstArg)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid destination path: %w", err)
 	}

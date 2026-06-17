@@ -19,10 +19,13 @@ var version = "dev"
 func main() {
 	var copyGit bool
 	var check bool
+	var swapPaths bool
 	flag.BoolVar(&copyGit, "copy-git", false, "copy the .git folder from the source root and clear the destination .git folder")
 	flag.BoolVar(&copyGit, "g", false, "shorthand for --copy-git")
 	flag.BoolVar(&check, "check", false, "verify source and destination match by file size and modification time")
 	flag.BoolVar(&check, "c", false, "shorthand for --check")
+	flag.BoolVar(&swapPaths, "swap", false, "treat the first argument as destination and the second as source")
+	flag.BoolVar(&swapPaths, "s", false, "shorthand for --swap")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -30,7 +33,7 @@ func main() {
 
 	gadget := ascii.InspectorGadget()
 
-	src, dst, err := resolveAndValidatePaths(flag.Args(), check)
+	src, dst, err := resolveAndValidatePaths(flag.Args(), check, swapPaths)
 	if errors.Is(err, errUsage) {
 		printUsageMessage("Please provide a source folder and a destination folder.")
 	}
@@ -76,6 +79,11 @@ func printUsageMessage(message string) {
 
 func usageOptions() []console.UsageOption {
 	return []console.UsageOption{
+		{
+			Flag: "-s, --swap",
+			Description: "Treat the first argument as destination and the second as source " +
+				"(default: off; normal order is source then destination)",
+		},
 		{
 			Flag: "-c, --check",
 			Description: "Verify source and destination are identical using file size and modification time " +

@@ -1,5 +1,5 @@
 # CLI utility for file copying in Go
-_Exported on 6/16/2026 at 17:52:01 PDT from Cursor (3.7.36)_
+_Exported on 6/16/2026 at 19:49:17 PDT from Cursor (3.7.36)_
 
 ---
 
@@ -745,4 +745,298 @@ Rebuild or start debugging again (**F5**) — the `.git/objects` copy should suc
 
 - Copy to a folder that isn’t on the Desktop (sometimes stricter permissions).
 - Exclude `.git` from the copy if you don’t need version history in the destination (not implemented yet; say if you want that).
+
+---
+
+**User**
+
+An option needs to be added "copy-git" to choose whether or not to copy hidden .git folder from the root of the source path. 
+If this option is off the .git folder in destination folder should be left untached and not deleted i.e as is.
+"copy-git" option is disabled by default, meaning .git folder will not be copied. 
+The Help and README files also need to be updated explaining behaviour of the whole process with different flags, and the default option values ​​must be specified in the help text displayed within the program.
+
+---
+
+**Cursor**
+
+Implementing `--copy-git` across copy, recycle-clear, help, and README. Reviewing the current code structure.
+
+
+Implementing `--copy-git` across copy, clear, help, and README.
+
+
+Added `--copy-git` / `-g` (default **off**). Summary:
+
+## New flag: `-g, --copy-git` (default: off)
+
+| Step | Default (off) | With `-g` |
+|------|---------------|-----------|
+| **Clear destination** | Root `.git` is **kept** | Root `.git` → Recycle Bin |
+| **Copy source** | Root `.git` is **skipped** | Root `.git` is copied |
+
+Only the `.git` folder at the **source root** is affected (not nested `.git` dirs elsewhere).
+
+## All flags (shown in program help)
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `-r, --remove-node-modules` | off | Delete destination `node_modules` before copy |
+| `-g, --copy-git` | off | Copy source root `.git`; clear destination `.git` |
+
+`node_modules` is always skipped during copy.
+
+## Files updated
+
+- `internal/1-recycle/clear.go` — preserves root `.git` when `-g` is off
+- `internal/2-copydir/copy.go` — skips root `.git` when `-g` is off
+- `cmd/copy-no-nm/main.go` — flag wiring and help text with defaults
+- `README.md` — full process overview with flag tables
+
+Examples:
+
+```bash
+copy-no-nm src dst                    # defaults: keep dest .git & node_modules
+copy-no-nm -g src dst                 # sync root .git
+copy-no-nm -r -g src dst              # both options on
+```
+
+---
+
+**User**
+
+When PrintUsage() runs the lines should be wrpped at ~80 characters.
+
+---
+
+**Cursor**
+
+Adding word-wrap at ~80 columns to `PrintUsage`, including continuation indents for option descriptions.
+
+
+`PrintUsage` now word-wraps at **80 columns**:
+
+- **Syntax** line — wrapped with a 2-space indent
+- **Option descriptions** — wrapped after the flag column; continuation lines align under the description
+- **Yellow message** — wrapped at full width
+
+Wrapping breaks on word boundaries via a `wrapText` helper. Tests added in `usage_windows_test.go`.
+
+---
+
+**User**
+
+Ensure that if the folder name is `node_modules`, there is no need to check the contents of its subfolders (i.e., you do not need to look inside this folder if the `--remove-node-modules` option is off).
+
+---
+
+**Cursor**
+
+Replacing the `WalkDir` scan so we never descend into `node_modules` when checking for nested folders.
+
+
+Updated `containsNodeModules` in `internal/1-recycle/clear.go`.
+
+**Before:** `filepath.WalkDir` could traverse into `node_modules` before stopping.
+
+**After:** recursive directory listing that:
+- Treats a direct `node_modules` child as a match and **never opens it**
+- Recurses only into other subfolders, still skipping any `node_modules` branches
+
+Together with the existing `clearEntries` logic (skip/delete `node_modules` at the entry level), preserved `node_modules` folders are left untouched with no inspection of their contents when `-r` is off.
+
+---
+
+**User**
+
+Add TOC to README.md
+
+---
+
+**Cursor**
+
+Added a **Contents** section to `README.md` with links to all main sections and subsections under Process overview and Development.
+
+---
+
+**User**
+
+If dest folder name is provided as param but does not exist then dest folder should be created
+
+---
+
+**Cursor**
+
+Destination validation now creates the folder when it’s missing.
+
+**`validate_paths.go`** — new `requireOrCreateDirectory`:
+- Destination **doesn’t exist** → `os.MkdirAll` creates it (including parent folders)
+- Destination **exists** → must be a directory (files still error)
+- Source is unchanged — must exist and be a directory
+
+Example:
+
+```bash
+copy-no-nm "C:\projects\my-app" "D:\backups\new-folder"
+```
+
+`D:\backups\new-folder` is created if it isn’t there yet, then the usual clear-and-copy runs.
+
+---
+
+**User**
+
+Update @README.md to reflect recent chages.
+
+---
+
+**Cursor**
+
+Updating the README to document recent behavior changes and fix formatting issues.
+
+
+Updated `README.md` to match the current behavior:
+
+- **Paths** — source must exist; destination is created if missing
+- **Startup** — name, description, and version line
+- **Options** — defaults, short flags, in-program help with wrapping
+- **Clear step** — `node_modules` kept and not scanned when `-r` is off
+- **Copy step** — read-only files (e.g. `.git` objects) noted
+- **Console output** — yellow usage help vs red errors vs green success
+- **Build** — version bump, conditional icon generation, `goversioninfo`
+- **Debugging** — Delve install note and `version dev` in debug builds
+- **Windows shortcut** — fixed formatting for the example target path
+- **TOC** — aligned with the new sections; restored **License**
+
+---
+
+**User**
+
+This project is hosted here https://github.com/maxzz/to-copy-no-nm-cli  and published to npmjs as https://www.npmjs.com/package/copy-no-nm 
+
+---
+
+**Cursor**
+
+Adding GitHub and npm links to `package.json` and `README.md`.
+
+
+Added project links in both places:
+
+**`package.json`**
+- `homepage` → GitHub README
+- `repository` → `git+https://github.com/maxzz/to-copy-no-nm-cli.git`
+- `bugs` → GitHub issues
+
+**`README.md`**
+- Links to [github.com/maxzz/to-copy-no-nm-cli](https://github.com/maxzz/to-copy-no-nm-cli) and [npmjs.com/package/copy-no-nm](https://www.npmjs.com/package/copy-no-nm)
+- Global install commands (`npm` / `pnpm`)
+- Publishing section references both URLs
+
+After you push to GitHub, the npm package page will pick up the repository link from `package.json` on the next publish.
+
+---
+
+**User**
+
+I think the "--remove-node-modules" option is redundant and can be removed; the program would simply never touch or modify the "node modules" folder in the destination.
+
+---
+
+**Cursor**
+
+Removing the `--remove-node-modules` option and making `node_modules` always preserved in the destination.
+
+
+Removed `--remove-node-modules` / `-r`. `node_modules` is now always left alone in the destination.
+
+## Behaviour (fixed)
+
+- **Clear:** `node_modules` folders are never deleted or scanned
+- **Copy:** `node_modules` is always skipped (unchanged)
+
+## Files updated
+
+- `internal/1-recycle/clear.go` — dropped `RemoveNodeModules` from `ClearOptions`
+- `cmd/copy-no-nm/main.go` — removed flag and help entry
+- `README.md` — simplified options and process tables
+- `.vscode/launch.json` — replaced `Debug copy-no-nm (-r)` with `(-g)`
+
+The only remaining flag is `-g, --copy-git` (default: off). Tests and build pass.
+
+---
+
+**User**
+
+Add a `--check` command-line option to verify that files in the source and target directories are identical, excluding `node_modules` and `.git`. Use modification time and file size for a quick check.
+
+---
+
+**Cursor**
+
+Implementing `--check` to compare source and destination by size and mtime, excluding `node_modules` and `.git`.
+
+
+Added `--check` to compare source and destination without copying or clearing.
+
+## `--check` behaviour
+
+- Walks both trees and compares each file by **size** and **modification time**
+- Skips all `node_modules` and `.git` folders (any depth)
+- Detects missing, extra, or mismatched files
+- **Does not** clear or copy; destination must already exist
+- On success: green summary with file count
+- On failure: red Inspector Gadget + first mismatch details
+
+## Usage
+
+```bash
+copy-no-nm --check "C:\source" "C:\destination"
+```
+
+## New files
+
+- `internal/3-check/compare.go` — comparison logic
+- `internal/3-check/compare_test.go` — tests
+
+Also updated: `main.go`, `validate_paths.go`, `console_windows.go`, `README.md`, `.vscode/launch.json`.
+
+---
+
+**User**
+
+@cmd/copy-no-nm/main.go:24 add shorthand and update @README.md 
+
+---
+
+**Cursor**
+
+Added `-c` as shorthand for `--check`.
+
+Updated:
+- **`main.go`** — `flag.BoolVar(&check, "c", ...)` and help shows `-c, --check`
+- **`README.md`** — options table, examples, paths note, and check mode heading
+- **`.vscode/launch.json`** — debug config renamed to `Debug copy-no-nm (-c)`
+
+---
+
+**User**
+
+Add an option to swap the input parameters—specifically, the source folder (first parameter) and the destination folder (second parameter). By default, this option is disabled; however, if enabled, the first parameter is treated as the destination folder and the second as the source folder.
+
+---
+
+**Cursor**
+
+Added `-s, --swap` (default **off**).
+
+When enabled:
+- **1st argument** → destination  
+- **2nd argument** → source  
+
+```bash
+# Same as: copy-no-nm "C:\projects\my-app" "D:\backups\my-app"
+copy-no-nm -s "D:\backups\my-app" "C:\projects\my-app"
+```
+
+Updated: `validate_paths.go`, `main.go` (flag + help), and `README.md` (paths table, options, example).
 
