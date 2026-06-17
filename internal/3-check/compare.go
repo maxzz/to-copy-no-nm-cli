@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"copy-no-nm/internal/9-progress"
 )
 
 const (
@@ -22,16 +24,21 @@ type fileSignature struct {
 
 // Compare checks that files under src and dst match by size and modification time.
 // Directories named node_modules or .git are excluded at any depth.
-func Compare(src, dst string) (int, error) {
+// Pass nil for reporter when no progress output is needed.
+func Compare(src, dst string, reporter progress.Reporter) (int, error) {
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
-	srcFiles, err := collectFiles(src)
+	if reporter == nil {
+		reporter = progress.NopReporter{}
+	}
+
+	srcFiles, err := collectFiles(src, reporter)
 	if err != nil {
 		return 0, fmt.Errorf("scan source: %w", err)
 	}
 
-	dstFiles, err := collectFiles(dst)
+	dstFiles, err := collectFiles(dst, reporter)
 	if err != nil {
 		return 0, fmt.Errorf("scan destination: %w", err)
 	}
@@ -55,8 +62,21 @@ func Compare(src, dst string) (int, error) {
 	return len(srcFiles), nil
 }
 
-func collectFiles(root string) (map[string]fileSignature, error) {
+func collectFiles(root string, reporter progress.Reporter) (map[string]fileSignature, error) {
 	files := make(map[string]fileSignature)
+	rootLabel := filepath.Base(root)
+
+	var currentFolder string
+	var folderFileCount int
+
+	completeFolder := func() {
+		if currentFolder == "" {
+			return
+		}
+		reporter.CompleteFolder()
+		currentFolder = ""
+		folderFileCount = 0
+	}
 
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -74,6 +94,15 @@ func collectFiles(root string) (map[string]fileSignature, error) {
 		if err != nil {
 			return err
 		}
+
+		folderLabel := folderDisplayName(rootLabel, filepath.Dir(rel))
+		if folderLabel != currentFolder {
+			completeFolder()
+			currentFolder = folderLabel
+			reporter.BeginFolder(currentFolder)
+		}
+		folderFileCount++
+		reporter.UpdateFileCount(folderFileCount)
 
 		info, err := entry.Info()
 		if err != nil {
@@ -101,7 +130,15 @@ func collectFiles(root string) (map[string]fileSignature, error) {
 		return nil, err
 	}
 
+	completeFolder()
 	return files, nil
+}
+
+func folderDisplayName(rootLabel, relDir string) string {
+	if relDir == "." {
+		return rootLabel
+	}
+	return filepath.Join(rootLabel, relDir)
 }
 
 func signaturesEqual(a, b fileSignature) bool {

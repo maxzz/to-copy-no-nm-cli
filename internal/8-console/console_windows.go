@@ -77,15 +77,9 @@ func PrintError(err error) {
 	os.Exit(1)
 }
 
-func PrintCheckSuccess(fileCount int) {
-	fmt.Printf(
-		"%sCheck passed: %d files match (size and modification time), excluding node_modules and .git.%s\n",
-		colorGreen,
-		fileCount,
-		colorReset,
-	)
-	time.Sleep(1500 * time.Millisecond)
-	os.Exit(0)
+// WaitForAnyKey blocks until the user presses any key.
+func WaitForAnyKey() {
+	waitForKey()
 }
 
 func PrintSuccess(art string) {

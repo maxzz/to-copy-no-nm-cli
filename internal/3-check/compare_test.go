@@ -12,7 +12,7 @@ func TestCompareMatchingTrees(t *testing.T) {
 
 	mirrorFile(t, filepath.Join(src, "a.txt"), filepath.Join(dst, "a.txt"), "hello")
 
-	count, err := Compare(src, dst)
+	count, err := Compare(src, dst, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestCompareSkipsNodeModulesAndGit(t *testing.T) {
 	writeFile(t, filepath.Join(src, ".git", "HEAD"), "skip")
 	writeFile(t, filepath.Join(dst, ".git", "HEAD"), "different")
 
-	count, err := Compare(src, dst)
+	count, err := Compare(src, dst, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestCompareDetectsMissingFile(t *testing.T) {
 
 	writeFile(t, filepath.Join(src, "only-src.txt"), "x")
 
-	_, err := Compare(src, dst)
+	_, err := Compare(src, dst, nil)
 	if err == nil {
 		t.Fatal("expected error for missing destination file")
 	}

@@ -9,6 +9,7 @@ import (
 	checkdir "copy-no-nm/internal/3-check"
 	syncdir "copy-no-nm/internal/4-syncdir"
 	fullcopy "copy-no-nm/internal/5-fullcopy"
+	progress "copy-no-nm/internal/9-progress"
 	console "copy-no-nm/internal/8-console"
 	ascii "copy-no-nm/internal/8-result-ascii"
 )
@@ -33,11 +34,13 @@ func main() {
 	}
 
 	if parsed.options.check {
-		fileCount, err := checkdir.Compare(src, dst)
+		display := progress.NewFolderDisplay()
+		_, err := checkdir.Compare(src, dst, display)
 		if err != nil {
 			console.PrintError(fmt.Errorf("check failed: %w", err))
 		}
-		console.PrintCheckSuccess(fileCount)
+		display.Finish()
+		os.Exit(0)
 	}
 
 	if parsed.options.fullCopy {
